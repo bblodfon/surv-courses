@@ -1,0 +1,117 @@
+---
+title: "ncc"
+output: html_document
+date: "`r Sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+library(survival)
+library(glmnet)
+library(tibble)
+library(dplyr)
+```
+
+# Nested case-control (ncc) and case-cohort studies
+
+In this exercise we will use data from a cohort of $1720$ female patients who were discharged from two tuberculosis sanatoria in Massachusetts between 1930 and 1956 to investigate breast cancer risk of radiation exposure due to fluoroscopy. Radiation doses have been estimated for $1022$ women who received radiation exposure to the chest from X-ray fluoroscopy lung examinations. Some women had multiple exposures to radiation. The remaining $698$ women in the cohort received treatments that did not require fluoroscopic monitoring and were radiation unexposed. The patients had been followed up until the end of 1980, by which time $75$ breast cancer cases were observed. (Source: Hrubec et al., Cancer Research, 1989)
+
+For this cohort radiation data have been collected for all $1720$ women. **But the workload of exposure data collection would have been reduced if the investigators had used a cohort sampling design**. In this exercise we will look at estimation based on the full cohort and for nested case-control and case-cohort samples selected from the full cohort.
+
+We first look at the cohort data. You may read these data into R by the command
+```{r}
+cohort=read.table("https://www.med.uio.no/imb/english/research/centres/ocbe/courses/imb9335/radiationbreast.cohort.txt", header=T) %>% as_tibble()
+cohort
+```
+The data are organized with one line for each of the 1720 women, and with the following variables in the six columns:
+
+- *id*: subject id
+- *dose*: radiation dose (Gy)
+- *number*: number of fluoroscopic examinations
+- *ageentry*: age at entry into the study (in years)
+- *ageexit*: age at breast cancer or censoring (in years)
+- *status*: breast cancer status (0: censored; 1: breast cancer)
+
+To model the effect of radiation dose on breast cancer risk, we will consider a Cox regression model with $log2(dose + 1)$, with dose measured in grays (Gy), as covariate. You may fit this model for cohort data by the commands:
+```{r}
+fit.cohort=coxph(Surv(ageentry,ageexit,status)~log2(dose+1), data=cohort)
+summary(fit.cohort)
+```
+
+We then consider nested case-control data with two controls per case $(m=2)$. You may read these data into R by the command
+```{r}
+ncc=read.table("https://www.med.uio.no/imb/english/research/centres/ocbe/courses/imb9335/radiationbreast.ncc.txt", header=T) %>% as_tibble()
+ncc
+```
+
+The data are organized with three lines for each of the **75 sampled risk sets** (one line for the case, and one line for each of the two controls, randomly selected, but falling within the risk set, e.g. the is an overlap between the age interval - think!), and with eight columns. The first six columns are as for the cohort data, while the variables in the two last columns are:
+
+- *case*: case-control status within the sampled risk set (0=control, 1=case)
+- *setno*: label of sampled risk set
+
+You may fit the Cox regression model for the nested case-control data by the commands:
+Note we use `case` instead of `status` and `strata(setno)` so that only the 3 patients per `setno` are used for the calculation of the risk set:
+```{r}
+fit.ncc = coxph(Surv(ageentry,ageexit,case) ~ log2(dose+1)+strata(setno),data=ncc)
+summary(fit.ncc)
+```
+
+b) Explain why these commands maximize the partial likelihood for nested case-control data. Perform the commands and compare the result with those you obtained for the cohort data.
+
+We then consider case-cohort data with a subcohort of $150$ women. You may read these data into R by the command
+
+```{r}
+caseco=read.table("https://www.med.uio.no/imb/english/research/centres/ocbe/courses/imb9335/radiationbreast.caseco.txt", header=T) %>% as_tibble()
+caseco
+```
+
+The data are organized with **one line for each woman who is in the subcohort or is a cancer case outside the subcohort** (no censored patients outside the subcohort!). The $150$ women were randomly selected to be in the subcohort. The rest to reach $218$ were the cases added ($status=1$) that are not in the subcohort. **All the cases ($75$) are included in the data (as was the case with ncc)**! The data file has seven columns. The first six columns are as for the cohort data, while the last column is:
+
+- *subc*: subcohort status (0: not in subcohort; 1: member of subcohort)
+
+For case cohort-data there are two possible methods of estimation. You may fit the Cox model for the case-cohort data using Prentice's method by the commands:
+
+```{r}
+fit.prentice = cch(Surv(ageentry,ageexit,status)~ log2(dose+1), data=caseco, subcoh=~subc, id=~id, method="Prentice", cohort.size=1720)
+
+print(fit.prentice)
+summary(fit.prentice)
+```
+
+c) Perform the commands and compare the result with those you obtained for cohort data and nested case-control data. Also fit the model using inverse probability weighting (which is achieved by using method="LinYing"), and compare with the results for Prentice's method.
+
+```{r}
+fit.ipw = survival::cch(Surv(ageentry,ageexit,status)~ log2(dose+1), data=caseco, subcoh=~subc, id=~id, method="LinYing", cohort.size=1720)
+
+summary(fit.ipw)
+```
+
+Finally we consider **stratified case-cohort data** where the sub-cohort consists of 50 women selected from each of the three strata: 
+
+(i) women with no fluoroscopic examinations (698 women)
+
+(ii) women with 1-149 fluoroscopic examinations (765 women)
+
+(iii) women with 150 or more fluoroscopic examinations (257 women)
+
+You may read the stratified case-cohort data into R by the command:
+```{r}
+stratcaseco=read.table("https://www.med.uio.no/imb/english/research/centres/ocbe/courses/imb9335/radiationbreast.stratcaseco.txt", header=T) %>% as_tibble()
+stratcaseco
+```
+
+The data are organized with one line for each woman who is in the subcohort or is a cancer case outside the subcohort. The data file has eight columns. The first six columns are as for the cohort data, while the two last column are
+
+- *subc*: subcohort status (0: not in subcohrt; 1: member of subcohort)
+- *stratum*: sampling stratum (1: no fluoroscopic examinations; 2: 1-149 examinations; 3: 150 examinations or more)
+
+You may fit the Cox model for the stratified case-cohort data using inverse probability weighting by the commands:
+```{r}
+stratsize=c(698,765,257)
+names(stratsize)=c(1,2,3)
+fit.ipw2=cch(Surv(ageentry,ageexit,status)~log2(dose+1), data=stratcaseco, subcoh=~subc,id=~id, stratum=~stratum, method="II.Borgan", cohort.size=stratsize)
+# Borgan II method is a generalization of the Lin-Ying estimator for stratified case-control data
+summary(fit.ipw2)
+```
+
+d) Perform the commands and compare the result with those you obtained for case-cohort data with no stratification.
