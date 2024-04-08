@@ -1,4 +1,4 @@
-# surv-course-2022
+# surv-courses
 
 Practical survival analysis exercises using vanilla `R` (mostly unpolished - good for reference though):
 
