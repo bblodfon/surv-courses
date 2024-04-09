@@ -1,0 +1,207 @@
+# Cox Regression (low-dim) {-}
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+```
+
+```{r libs}
+library(survival)
+library(tibble)
+```
+
+From 1962 to 1969 a number of patients with liver cirrhosis at several hospitals in Copenhagen were included in a randomized clinical trial. The purpose of the study was to investigate whether patients treated with the hormone prednisone had a better survival than patients who got an inactive placebo treatment. In this exercise, we will restrict attention to the $386$ patients in the study who had no excess fluid in the abdomen at entry. (Source: Andersen, Borgan, Gill & Keiding, Springer, 1993.)
+
+We will study the effect of treatment with prednisone. We will also investigate the effect on survival of the **covariates** *sex*, *age*, and *prothrombin* index (a measurement based on a blood test of some coagulation factors produced by the liver, in percent of the normal value).
+
+You may read the data into R by the command:
+
+```{r}
+liver = read.table("https://www.med.uio.no/imb/english/research/centres/ocbe/courses/imb9335/liver.txt", header=T) %>% as_tibble()
+liver
+```
+
+The data are organized with one line for each of the $386$ patients, and with the following variables in the six columns:
+
+- status: indicator for death/censoring (1=dead; 0=censored)
+- time: time in days from start of treatment to death/censoring
+- treat: treatment (0=prednisone; 1=placebo)
+- sex: gender (0=female; 1=male)
+- age: age in years at start of treatment
+- prot: prothrombin index
+
+To get an overview of the data, we will first do univariate analyses of the effects of the covariates treatment, sex, age and prothrombin index using Kaplan-Meier plots and the log-rank tests.
+
+For treatment, you may give the commands (when time is converted to years).
+```{r}
+fit.treat = survfit(Surv(time/365.25, status) ~ factor(treat), data = liver)
+
+plot(fit.treat, mark.time=FALSE, xlab="Years after randomization", lty=1:2, main="KM - Treatment")
+legend("bottomleft",c("Prednisone","Placebo"),lty=1:2)
+```
+
+```{r}
+survdiff(Surv(time/365.25,status) ~ factor(treat), data=liver)
+```
+
+a) Perform the commands and interpret the results.
+
+b) Perform similar analyses as in a) for the covariate sex. 
+
+```{r}
+fit.sex = survfit(Surv(time/365.25, status) ~ factor(sex), data = liver)
+
+plot(fit.sex, mark.time=FALSE, xlab="Years after randomization", lty=1:2, main="KM - Sex")
+legend("bottomleft", c("Female","Male"), lty=1:2)
+```
+
+```{r}
+survdiff(formula = Surv(time/365.25, status) ~ factor(sex), data = liver)
+```
+
+We want to do similar analyses as in a) and b) for the numeric covariates age and prothrombin index. But then we first have to make a grouping based on these covariates. In order to group age into the groups: 49 years or less, 50-59 years, 60-69 years, and 70 years or more, you may **create a new categorial covariate agegroup** by the command:
+```{r}
+liver$agegroup=cut(liver$age, breaks=c(0,49,59,69,100),labels=1:4)
+unique(liver$agegroup)
+```
+c) Make a grouping of age by the command given above, and perform similar analyses for age group as the ones in a) and b).
+
+```{r}
+fit.ageg = survfit(Surv(time/365.25, status) ~ factor(agegroup), data = liver)
+
+plot(fit.ageg, mark.time=FALSE, xlab="Years after randomization", lty=1:4, main="KM - Age group", col = 1:4)
+legend("bottomleft", c("0-49","50-59", "60-69", "70-100"), lty=1:4, col = 1:4)
+```
+
+```{r}
+# factor() doesn't play a role here => in Cox regression it does!
+survdiff(formula = Surv(time/365.25, status) ~ factor(agegroup), data = liver)
+```
+
+d) Make an appropriate grouping of prothrombin index and do similar analyses for grouped prothrombin as in a), b) and c).
+
+```{r}
+quantile(liver$prot)
+summary(liver$prot)
+liver$protgroup = cut(liver$prot, breaks=c(0,58,90,135),labels=1:3)
+unique(liver$protgroup)
+```
+
+```{r}
+fit.protg = survfit(Surv(time/365.25, status) ~ factor(protgroup), data = liver)
+
+plot(fit.protg, mark.time=FALSE, xlab="Years after randomization", lty=1:3, main="KM - Protgroup", col = 1:3)
+legend("bottomleft", c("0-58","59-90", "91-135"), lty=1:3, col = 1:3)
+```
+- Higher prot-index is better!!!
+
+```{r}
+survdiff(formula = Surv(time/365.25, status) ~ factor(protgroup), data = liver)
+```
+
+In order to study jointly the effects the covariates, we fit a Cox regression model with all covariates. If we use age and prothrombin as numeric covariates, we may give the commands:
+
+```{r}
+cox.fit = coxph(Surv(time/365.25, status) ~ factor(treat) + factor(sex) + age + prot, data = liver)
+
+summary(cox.fit)
+```
+
+- Treat = 1 (placebo) or sex = 1 (male) or higher age is worse (**HR = exp(coef) > 1**) given that all the other covariates remain the same
+- Also smaller prot is worse (but not too much, also the same for age)
+
+e) Perform the commands, and interpret the estimated hazard ratios.
+
+f) Do you think that it is reasonable to use both age and prothrombin index as numeric covariates in the Cox regression model? If not, also fit model(s) where you use the grouped version of one or both of these covariates. Interpret the estimated hazard ratios.
+
+```{r}
+cox.fit2 = coxph(Surv(time/365.25, status) ~ factor(treat) + factor(sex) + agegroup + protgroup, data = liver)
+summary(cox.fit2)
+```
+
+This exercise is a continuation of the exercise on Cox regression for the liver cirrhosis data from yesterday. The liver cirrhosis data are described in the exercise from yesterday. There it is also explained how you may read the data into R.
+
+We first fit a Cox regression model with all four covariates by the commands:
+```{r}
+cox.fit=coxph(Surv(time/365.25,status)~factor(treat)+factor(sex)+age+prot,data=liver)
+summary(cox.fit)
+```
+
+- Discuss the assumptions of the model fitted above.
+
+CHECK CONTINUOUS VARIABLES LOG-LINEARITY ASSUMPTION:
+
+- Investigate if there is a **log-linear effect of age**, we may give the commands:
+```{r}
+cox.spage=coxph(Surv(time/365.25,status)~factor(treat)+factor(sex)+pspline(age)+prot,data=liver)
+print(cox.spage)
+termplot(cox.spage,se=T,terms=3)
+```
+
+Discuss if it is reasonable to assume a log-linear effect of age? => **No => plot is linear**
+
+- Investigate if there is a log-linear effect of prothrombin index.
+```{r}
+cox.spprot=coxph(Surv(time/365.25,status)~factor(treat)+factor(sex)+age+pspline(prot),data=liver)
+print(cox.spprot)
+termplot(cox.spprot,se=T,terms=4)
+```
+
+The result above gives some indication (but not very clear!) that the effect of prothrombin index is not log-linear. In the remainder of this exercise, we will work with prothrombin grouped in the three groups: (i) prothrombin index 49 or below, (ii) prothrombin index 50-89, and (iii) prothrombin index 90 or above. We may create a new categorial covariate protgroup by the command:
+
+```{r}
+liver$protgroup=cut(liver$prot, breaks=c(0,49,89,150),labels=1:3)
+```
+We may fit a Cox model with this variable (together with the other three covariates) by the commands
+```{r}
+cox.grfit=coxph(Surv(time/365.25,status)~factor(treat)+factor(sex)+age+factor(protgroup),data=liver)
+summary(cox.grfit)
+```
+
+Check if the assumption of proportional hazards seems to be fulfilled for the model:
+**a non-significant p-value means PH is okay/satisfied**, since $H_0 = (slope = 0)$, i.e. PH means that the time-dependent plot should approximately be a straight line:
+
+```{r}
+phres = cox.zph(cox.grfit, terms = FALSE)
+phres
+plot(phres)
+```
+
+Check this dependence with time: $b_1$ $b_1+b_{12}\times log(t)$
+
+```{r}
+phres = cox.zph(cox.grfit, transform = 'log', terms = FALSE)
+phres
+plot(phres)
+```
+
+Predicting survival curves for new patients:
+
+- A prednisone treated woman aged 60 years who has prothrombin index 90 or above
+- A prednisone treated woman aged 60 years who has prothrombin index 49 or below
+- A placebo treated man aged 60 years who has prothrombin index 90 or above
+- A placebo treated man aged 60 years who has prothrombin index 49 or below
+
+```{r}
+newdata = data.frame(
+  sex = c(0,0,1,1), 
+  treat = c(0,0,1,1), 
+  age = rep(60, 4),
+  protgroup = c(3,1,3,1))
+newdata
+```
+
+```{r}
+surv.res = survfit(cox.grfit, newdata = newdata)
+plot(surv.res, fun="cumhaz", mark.time=FALSE, xlim=c(0,10),
+xlab="Years since operation", ylab="Cumulative hazard", lty=1:4, lwd=2, col = 1:4)
+legend("topleft",c("female, treated, 60y, progr = 3","female, treated, 60y, protgr = 1",
+"male, placebo, 60y, progr = 3","female, placebo, 60y, protgr = 1"), lty=1:4,lwd=2, col = 1:4)
+```
+
+```{r}
+plot(surv.res, fun="surv", mark.time=FALSE, xlim=c(0,10),
+xlab="Years since operation", ylab="Survival Probability", lty=1:4, lwd=2, col = 1:4)
+legend("topleft",c("female, treated, 60y, progr = 3","female, treated, 60y, protgr = 1",
+"male, placebo, 60y, progr = 3","female, placebo, 60y, protgr = 1"), lty=1:4,lwd=2, col = 1:4)
+```
+

@@ -1,0 +1,6 @@
+# Intro {-}
+
+The analyses you see here come from various courses related to survival analysis, epidemiology and causal inference:
+
+- Modern methods for analyzing survival and time to event data (2022) [link](https://www.uio.no/studier/emner/medisin/med/IMB9335/)
+- Causal inference for time-to-event outcomes (2024) [link](https://jmgran.github.io/iscbcourse/)
