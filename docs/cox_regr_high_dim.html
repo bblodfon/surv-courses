@@ -214,80 +214,60 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<div class="cell" data-hash="cox_regr_high_dim_cache/html/libs_f97df01ee60d548fbc3e88557d6e7d8a">
+<div class="cell" data-hash="cox_regr_high_dim_cache/html/libs_5e9e665ef29e61e3553135158c15371b">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survival)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(glmnet)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Loading required package: Matrix</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Loaded glmnet 4.1-8</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tibble)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>
-Attaching package: 'dplyr'</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>The following objects are masked from 'package:stats':
-
-    filter, lag</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>The following objects are masked from 'package:base':
-
-    intersect, setdiff, setequal, union</code></pre>
-</div>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(glmnet)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tibble)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>In this exercise, we will use data for <span class="math inline">\(115\)</span> Norwegian women with breast cancer. For each of the women, we have gene expression measurements for <span class="math inline">\(549\)</span> «intrinsic genes» and information on the time to breast cancer death or censoring. (Source: Sørlie et al.&nbsp;Proc. Natl Acad. Sci. USA, 2003.)</p>
 <p>We will use penalized Cox regression to investigate if the gene expressions have predictive power for survival and try to identify which genes are of importance.</p>
 <p>You may read the data into R by the command:</p>
 <div class="cell" data-hash="cox_regr_high_dim_cache/html/unnamed-chunk-1_21ca72fe26f01f80761ab6251f7a620b">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>brcancer<span class="ot">=</span><span class="fu">read.table</span>(<span class="st">"https://www.med.uio.no/imb/english/research/centres/ocbe/courses/imb9335/norw-breast-cancer.txt"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>brcancer<span class="ot">=</span><span class="fu">read.table</span>(<span class="st">"https://www.med.uio.no/imb/english/research/centres/ocbe/courses/imb9335/norw-breast-cancer.txt"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Before we analyse the data, we will define 10 folds that may be used in the cross-validation (to ensure – for pedagogical reasons - that all students get the same results). We do this by the commands</p>
 <div class="cell" data-hash="cox_regr_high_dim_cache/html/unnamed-chunk-2_cf124c1dd7de7837219e6e5f2918977f">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">33575</span>)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>ind<span class="ot">=</span><span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">115</span>,<span class="dv">115</span>)</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>brcancer<span class="ot">=</span>brcancer[ind,]</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>fold<span class="ot">=</span><span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>,<span class="at">length.out=</span><span class="dv">115</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">33575</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>ind<span class="ot">=</span><span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">115</span>,<span class="dv">115</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>brcancer<span class="ot">=</span>brcancer[ind,]</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>fold<span class="ot">=</span><span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>,<span class="at">length.out=</span><span class="dv">115</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>We extract the (censored) survival times, the censoring/death statuses and the gene expressions by the commands</p>
 <div class="cell" data-hash="cox_regr_high_dim_cache/html/unnamed-chunk-3_7a9a253c8e68d23cd23d3b101ea87b55">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>time<span class="ot">=</span>brcancer[,<span class="dv">1</span>]</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>status<span class="ot">=</span>brcancer[,<span class="dv">2</span>]</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>geneexpr<span class="ot">=</span><span class="fu">as.matrix</span>(brcancer[,<span class="sc">-</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>)])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>time<span class="ot">=</span>brcancer[,<span class="dv">1</span>]</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>status<span class="ot">=</span>brcancer[,<span class="dv">2</span>]</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>geneexpr<span class="ot">=</span><span class="fu">as.matrix</span>(brcancer[,<span class="sc">-</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>)])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Censoring problems with the folds?</p>
 <div class="cell" data-hash="cox_regr_high_dim_cache/html/unnamed-chunk-4_e001863f653d556f1a73b0701e30e9b1">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(status <span class="sc">==</span> <span class="dv">0</span>)<span class="sc">/</span><span class="fu">length</span>(status)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(status <span class="sc">==</span> <span class="dv">0</span>)<span class="sc">/</span><span class="fu">length</span>(status)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.6695652</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>status[fold <span class="sc">==</span> <span class="dv">5</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>status[fold <span class="sc">==</span> <span class="dv">5</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> [1] 0 0 0 0 0 1 0 0 0 0 0 0</code></pre>
 </div>
 </div>
 <p>We may then do a Cox-lasso regression with 10-fold cross-validation and plot the cross-validation curve by the commands (you need to load the survival and glmnet-packages)</p>
 <div class="cell" data-hash="cox_regr_high_dim_cache/html/unnamed-chunk-5_5a0d4a11410402540a14b2fed851cb68">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>cox.lasso<span class="ot">=</span><span class="fu">cv.glmnet</span>(geneexpr,<span class="fu">Surv</span>(time,status),<span class="at">family=</span><span class="st">"cox"</span>,<span class="at">foldid=</span>fold, <span class="at">standardize=</span><span class="cn">FALSE</span>)</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cox.lasso)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>cox.lasso<span class="ot">=</span><span class="fu">cv.glmnet</span>(geneexpr,<span class="fu">Surv</span>(time,status),<span class="at">family=</span><span class="st">"cox"</span>,<span class="at">foldid=</span>fold, <span class="at">standardize=</span><span class="cn">FALSE</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cox.lasso)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="cox_regr_high_dim_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <div class="cell" data-hash="cox_regr_high_dim_cache/html/unnamed-chunk-6_a81ae7acd967e9bd5f4db05aa23fa177">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>cox.lasso<span class="sc">$</span>lambda.min</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>cox.lasso<span class="sc">$</span>lambda.min</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.2902299</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">log</span>(cox.lasso<span class="sc">$</span>lambda.min)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">log</span>(cox.lasso<span class="sc">$</span>lambda.min)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] -1.237082</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">min</span>(cox.lasso<span class="sc">$</span>cvm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">min</span>(cox.lasso<span class="sc">$</span>cvm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 8.45301</code></pre>
 </div>
@@ -297,11 +277,11 @@ Attaching package: 'dplyr'</code></pre>
 </ol>
 <p>We may use the following commands to obtain a list of the genes that obtain an estimate that differ from zero (i.e.&nbsp;the selected genes):</p>
 <div class="cell" data-hash="cox_regr_high_dim_cache/html/unnamed-chunk-7_2be28d93197615741ca11c7a11c25cda">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>coefficients<span class="ot">=</span><span class="fu">coef</span>(cox.lasso, <span class="at">s=</span>cox.lasso<span class="sc">$</span>lambda.min)</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>active.index<span class="ot">=</span><span class="fu">which</span>(coefficients <span class="sc">!=</span> <span class="dv">0</span>)</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>active.coefficients<span class="ot">=</span>coefficients[active.index]</span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>covarno<span class="ot">=</span><span class="fu">predict</span>(cox.lasso, <span class="at">s=</span>cox.lasso<span class="sc">$</span>lambda.min,<span class="at">type=</span><span class="st">"nonzero"</span>)</span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="fu">cbind</span>(covarno,active.coefficients)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>coefficients<span class="ot">=</span><span class="fu">coef</span>(cox.lasso, <span class="at">s=</span>cox.lasso<span class="sc">$</span>lambda.min)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>active.index<span class="ot">=</span><span class="fu">which</span>(coefficients <span class="sc">!=</span> <span class="dv">0</span>)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>active.coefficients<span class="ot">=</span>coefficients[active.index]</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>covarno<span class="ot">=</span><span class="fu">predict</span>(cox.lasso, <span class="at">s=</span>cox.lasso<span class="sc">$</span>lambda.min,<span class="at">type=</span><span class="st">"nonzero"</span>)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="fu">cbind</span>(covarno,active.coefficients)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  which active.coefficients
 1   356          -0.1720938</code></pre>
@@ -309,27 +289,27 @@ Attaching package: 'dplyr'</code></pre>
 </div>
 <p>Repeat a number of times and see how the number of genes and the list of selected genes vary from splits to splits:</p>
 <div class="cell" data-hash="cox_regr_high_dim_cache/html/unnamed-chunk-8_cd03df0420cee61771094ef2a5b8a607">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="dv">25</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>dl <span class="ot">=</span> <span class="fu">list</span>()</span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n) {</span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># message(i)</span></span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  cox.lasso <span class="ot">=</span> <span class="fu">cv.glmnet</span>(geneexpr,<span class="fu">Surv</span>(time,status),<span class="at">family=</span><span class="st">"cox"</span>,<span class="at">nfolds=</span><span class="dv">10</span>, <span class="at">standardize=</span><span class="cn">FALSE</span>)</span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  coef_tbl <span class="ot">=</span> <span class="fu">coef</span>(cox.lasso, <span class="at">s =</span> <span class="st">'lambda.min'</span>) <span class="sc">%&gt;%</span> <span class="co"># s = 'lambda.' different</span></span>
-<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.matrix</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>    tibble<span class="sc">::</span><span class="fu">rownames_to_column</span>(<span class="at">var =</span> <span class="st">'coef_name'</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">rename</span>(<span class="at">value =</span> <span class="st">`</span><span class="at">1</span><span class="st">`</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(value <span class="sc">!=</span> <span class="dv">0</span>)</span>
-<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>  dl[[i]] <span class="ot">=</span> coef_tbl</span>
-<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>res <span class="ot">=</span> dplyr<span class="sc">::</span><span class="fu">bind_rows</span>(dl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="dv">25</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>dl <span class="ot">=</span> <span class="fu">list</span>()</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n) {</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># message(i)</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  cox.lasso <span class="ot">=</span> <span class="fu">cv.glmnet</span>(geneexpr,<span class="fu">Surv</span>(time,status),<span class="at">family=</span><span class="st">"cox"</span>,<span class="at">nfolds=</span><span class="dv">10</span>, <span class="at">standardize=</span><span class="cn">FALSE</span>)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  coef_tbl <span class="ot">=</span> <span class="fu">coef</span>(cox.lasso, <span class="at">s =</span> <span class="st">'lambda.min'</span>) <span class="sc">%&gt;%</span> <span class="co"># s = 'lambda.' different</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.matrix</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>    tibble<span class="sc">::</span><span class="fu">rownames_to_column</span>(<span class="at">var =</span> <span class="st">'coef_name'</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">rename</span>(<span class="at">value =</span> <span class="st">`</span><span class="at">1</span><span class="st">`</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(value <span class="sc">!=</span> <span class="dv">0</span>)</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>  dl[[i]] <span class="ot">=</span> coef_tbl</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>res <span class="ot">=</span> dplyr<span class="sc">::</span><span class="fu">bind_rows</span>(dl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell" data-hash="cox_regr_high_dim_cache/html/unnamed-chunk-9_130a3ddfafffc9c083bd647ee892028e">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>res <span class="sc">%&gt;%</span> </span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(coef_name) <span class="sc">%&gt;%</span> </span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_coef =</span> <span class="fu">mean</span>(value), <span class="at">ntimes=</span><span class="fu">n</span>()) <span class="sc">%&gt;%</span></span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(ntimes))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>res <span class="sc">%&gt;%</span> </span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(coef_name) <span class="sc">%&gt;%</span> </span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_coef =</span> <span class="fu">mean</span>(value), <span class="at">ntimes=</span><span class="fu">n</span>()) <span class="sc">%&gt;%</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(ntimes))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 5 × 3
   coef_name mean_coef ntimes
@@ -343,8 +323,8 @@ Attaching package: 'dplyr'</code></pre>
 </div>
 <p>Finally, if time allows, you may try out the elastic net. You may fit a Cox elastic net (with alpha=0.5) for the original split into 10 folds by the command:</p>
 <div class="cell" data-hash="cox_regr_high_dim_cache/html/unnamed-chunk-10_2f9ed6690dcb388a9efdaec6d9054275">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>cox.net<span class="ot">=</span><span class="fu">cv.glmnet</span>(geneexpr,<span class="fu">Surv</span>(time,status),<span class="at">family=</span><span class="st">"cox"</span>,<span class="at">alpha=</span><span class="fl">0.5</span>,<span class="at">foldid=</span>fold, <span class="at">standardize=</span><span class="cn">FALSE</span>)</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cox.net)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>cox.net<span class="ot">=</span><span class="fu">cv.glmnet</span>(geneexpr,<span class="fu">Surv</span>(time,status),<span class="at">family=</span><span class="st">"cox"</span>,<span class="at">alpha=</span><span class="fl">0.5</span>,<span class="at">foldid=</span>fold, <span class="at">standardize=</span><span class="cn">FALSE</span>)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cox.net)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="cox_regr_high_dim_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="672"></p>
 </div>

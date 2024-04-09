@@ -214,30 +214,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<div class="cell" data-hash="aalen_cache/html/libs_666cdd97b1b5c0ccf142952dcf20a7e1">
+<div class="cell" data-hash="aalen_cache/html/libs_b510b35f4a05bee187fe165db10d0754">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survival)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tibble)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>
-Attaching package: 'dplyr'</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>The following objects are masked from 'package:stats':
-
-    filter, lag</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>The following objects are masked from 'package:base':
-
-    intersect, setdiff, setequal, union</code></pre>
-</div>
 </div>
 <p>At the university hospital of the University of Massachusetts one has for a number of years studied the survival of patients admitted with an acute myocardial infarction (AMI- aka HEART ATTACK!). One <strong>aim of the study</strong> has been to investigate whether the <strong>survival of AMI patients has improved over time</strong>. A number of covariates were measured at hospitalization. In addition to information on time of hospitalization (here given in five years periods), we will in this problem restrict attention to the two demographic covariates age and sex, one covariate that is related to the seriousness of the AMI (amount of “heart enzyme”), and one covariate that gives information on whether the patient has had an AMI earlier or not. Further we will restrict attention to the first three years after AMI, so patients who live longer than <span class="math inline">\(1095 = 3 \times 365\)</span> days have been censored at that time.</p>
 <p>You may read the AMI-data into R by the command:</p>
 <div class="cell" data-hash="aalen_cache/html/unnamed-chunk-1_39f5ba932c5849f9a1d0e3c49398a0f2">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>ami<span class="ot">=</span><span class="fu">read.table</span>(<span class="st">"https://www.med.uio.no/imb/english/research/centres/ocbe/courses/imb9335/ami.txt"</span>,<span class="at">header=</span>T) <span class="sc">%&gt;%</span> <span class="fu">as_tibble</span>()</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>ami</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>ami<span class="ot">=</span><span class="fu">read.table</span>(<span class="st">"https://www.med.uio.no/imb/english/research/centres/ocbe/courses/imb9335/ami.txt"</span>,<span class="at">header=</span>T) <span class="sc">%&gt;%</span> <span class="fu">as_tibble</span>()</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>ami</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 481 × 8
       id  days status   per   age   sex enzym  prev
@@ -271,8 +257,8 @@ Attaching package: 'dplyr'</code></pre>
 <li>First we fit an additive model with sex as the only covariate and plot the estimated cumulative regression function. This is achieved by the commands:</li>
 </ol>
 <div class="cell" data-hash="aalen_cache/html/unnamed-chunk-2_e629d37cbcdc5a7020efa64f909148a8">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>fit.sex <span class="ot">=</span> survival<span class="sc">::</span><span class="fu">aareg</span>(<span class="fu">Surv</span>(days,status) <span class="sc">~</span> <span class="fu">factor</span>(sex), <span class="at">data=</span>ami)</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>fit.sex</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>fit.sex <span class="ot">=</span> survival<span class="sc">::</span><span class="fu">aareg</span>(<span class="fu">Surv</span>(days,status) <span class="sc">~</span> <span class="fu">factor</span>(sex), <span class="at">data=</span>ami)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>fit.sex</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Call:
 survival::aareg(formula = Surv(days, status) ~ factor(sex), data = ami)
@@ -286,7 +272,7 @@ factor(sex)1 0.000405 0.00102 0.000407 2.51 1.20e-02
 
 Chisq=6.31 on 1 df, p=0.012; test weights=aalen</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit.sex, <span class="at">maxtime =</span> <span class="dv">100</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit.sex, <span class="at">maxtime =</span> <span class="dv">100</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Call:
 survival::aareg(formula = Surv(days, status) ~ factor(sex), data = ami)
@@ -303,32 +289,32 @@ Chisq=6.77 on 1 df, p=0.00927; test weights=aalen</code></pre>
 </div>
 <p>Also test the null hypothesis that there is <strong>no effect of sex</strong> (marginally, i.e.&nbsp;when not corrected for the other covariates). You obtain the standardized test and its p-value from the last two columns of the output from the command print(fit.sex). (The maxtime option also works for the print command.)</p>
 <div class="cell" data-hash="aalen_cache/html/unnamed-chunk-3_c2f82d284d9677614d1f930a7a6aa8da">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>res <span class="ot">=</span> <span class="fu">summary</span>(fit.sex) <span class="co"># , maxtime = 100</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>res<span class="sc">$</span>table[<span class="dv">2</span>,<span class="st">'p'</span>] <span class="co"># borderline</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>res <span class="ot">=</span> <span class="fu">summary</span>(fit.sex) <span class="co"># , maxtime = 100</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>res<span class="sc">$</span>table[<span class="dv">2</span>,<span class="st">'p'</span>] <span class="co"># borderline</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.01200272</code></pre>
 </div>
 </div>
 <p>Intercept figure always shows the baseline hazard (reference category when modeling with one covariate or all reference values when modeling with more covariates):</p>
 <div class="cell" data-hash="aalen_cache/html/unnamed-chunk-4_0258025b703ca09a1a27fade8ba280ca">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.sex)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.sex)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="aalen_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>You may want to <strong>focus on the first 100 days after hospitalizations</strong>.</p>
 <div class="cell" data-hash="aalen_cache/html/unnamed-chunk-5_fb134113e53e32f5a2342a865a5f7622">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.sex, <span class="at">maxtime =</span> <span class="dv">100</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.sex, <span class="at">maxtime =</span> <span class="dv">100</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="aalen_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>Effect of <code>sex</code> variable is stronger the first 100 days (p-value):</p>
 <div class="cell" data-hash="aalen_cache/html/unnamed-chunk-6_ba5a1616bc121b61d99aa95e5582b726">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>res <span class="ot">=</span> <span class="fu">summary</span>(fit.sex, <span class="at">maxtime =</span> <span class="dv">100</span>)</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>res<span class="sc">$</span>table[<span class="dv">2</span>,<span class="st">'p'</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>res <span class="ot">=</span> <span class="fu">summary</span>(fit.sex, <span class="at">maxtime =</span> <span class="dv">100</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>res<span class="sc">$</span>table[<span class="dv">2</span>,<span class="st">'p'</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.009270794</code></pre>
 </div>
@@ -341,15 +327,15 @@ Chisq=6.77 on 1 df, p=0.00927; test weights=aalen</code></pre>
 <li>Note that the <strong>centering value</strong> (e.g.&nbsp;mean or other) is like the <strong>reference value</strong>:</li>
 </ul>
 <div class="cell" data-hash="aalen_cache/html/unnamed-chunk-7_2f022268c2a44a64e12bda18d5b49fb2">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>ami2 <span class="ot">=</span> ami <span class="sc">%&gt;%</span> </span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">age =</span> (age <span class="sc">-</span> <span class="fu">mean</span>(age))<span class="sc">/</span><span class="fu">sd</span>(age), <span class="at">enzym =</span> (enzym <span class="sc">-</span> <span class="fu">mean</span>(enzym))<span class="sc">/</span><span class="fu">sd</span>(enzym))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>ami2 <span class="ot">=</span> ami <span class="sc">%&gt;%</span> </span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">age =</span> (age <span class="sc">-</span> <span class="fu">mean</span>(age))<span class="sc">/</span><span class="fu">sd</span>(age), <span class="at">enzym =</span> (enzym <span class="sc">-</span> <span class="fu">mean</span>(enzym))<span class="sc">/</span><span class="fu">sd</span>(enzym))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ul>
 <li><code>per</code> (hospitalization period) has <strong>no effect</strong>:</li>
 </ul>
 <div class="cell" data-hash="aalen_cache/html/unnamed-chunk-8_f43344a3100b2a4f803fcbeb5f77adae">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>fit.per <span class="ot">=</span> <span class="fu">aareg</span>(<span class="at">formula =</span> <span class="fu">Surv</span>(days, status) <span class="sc">~</span> <span class="fu">factor</span>(per), <span class="at">data =</span> ami)</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>fit.per</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>fit.per <span class="ot">=</span> <span class="fu">aareg</span>(<span class="at">formula =</span> <span class="fu">Surv</span>(days, status) <span class="sc">~</span> <span class="fu">factor</span>(per), <span class="at">data =</span> ami)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>fit.per</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Call:
 aareg(formula = Surv(days, status) ~ factor(per), data = ami)
@@ -364,15 +350,15 @@ factor(per)3 -6.25e-05 -0.000104 0.000471 -0.222 8.25e-01
 
 Chisq=0.43 on 2 df, p=0.805; test weights=aalen</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">3</span>))</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.per)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">3</span>))</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.per)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="aalen_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <div class="cell" data-hash="aalen_cache/html/unnamed-chunk-9_2fec384208bf7d5fa596e76812c8b5ea">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>fit.age <span class="ot">=</span> <span class="fu">aareg</span>(<span class="at">formula =</span> <span class="fu">Surv</span>(days, status) <span class="sc">~</span> age, <span class="at">data =</span> ami)</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>fit.age</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>fit.age <span class="ot">=</span> <span class="fu">aareg</span>(<span class="at">formula =</span> <span class="fu">Surv</span>(days, status) <span class="sc">~</span> age, <span class="at">data =</span> ami)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>fit.age</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Call:
 aareg(formula = Surv(days, status) ~ age, data = ami)
@@ -386,8 +372,8 @@ age        4.22e-05  0.000116 1.64e-05  7.10 1.27e-12
 
 Chisq=50.38 on 1 df, p=1.27e-12; test weights=aalen</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.age)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.age)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="aalen_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -397,8 +383,8 @@ Chisq=50.38 on 1 df, p=1.27e-12; test weights=aalen</code></pre>
 <li>Hazard increases with larger <code>age</code>! (there is an effect)</li>
 </ul>
 <div class="cell" data-hash="aalen_cache/html/unnamed-chunk-10_cc3bc5161b416521b6fc1b28f12520d6">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>fit.age2 <span class="ot">=</span> <span class="fu">aareg</span>(<span class="at">formula =</span> <span class="fu">Surv</span>(days, status) <span class="sc">~</span> age, <span class="at">data =</span> ami2)</span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>fit.age2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>fit.age2 <span class="ot">=</span> <span class="fu">aareg</span>(<span class="at">formula =</span> <span class="fu">Surv</span>(days, status) <span class="sc">~</span> age, <span class="at">data =</span> ami2)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>fit.age2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Call:
 aareg(formula = Surv(days, status) ~ age, data = ami2)
@@ -412,8 +398,8 @@ age       0.000535 0.00147 0.000208  7.1 1.27e-12
 
 Chisq=50.38 on 1 df, p=1.27e-12; test weights=aalen</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.age2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.age2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="aalen_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -422,8 +408,8 @@ Chisq=50.38 on 1 df, p=1.27e-12; test weights=aalen</code></pre>
 <li><code>enzym</code> has <strong>no significant effect</strong>:</li>
 </ul>
 <div class="cell" data-hash="aalen_cache/html/unnamed-chunk-11_763d83ae58a18e1463086efeb3818768">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>fit.enzym <span class="ot">=</span> <span class="fu">aareg</span>(<span class="at">formula =</span> <span class="fu">Surv</span>(days, status) <span class="sc">~</span> enzym, <span class="at">data =</span> ami2)</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>fit.enzym</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>fit.enzym <span class="ot">=</span> <span class="fu">aareg</span>(<span class="at">formula =</span> <span class="fu">Surv</span>(days, status) <span class="sc">~</span> enzym, <span class="at">data =</span> ami2)</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>fit.enzym</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Call:
 aareg(formula = Surv(days, status) ~ enzym, data = ami2)
@@ -437,8 +423,8 @@ enzym     0.000223 0.000444 0.000269  1.65 9.92e-02
 
 Chisq=2.72 on 1 df, p=0.0992; test weights=aalen</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.enzym)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.enzym)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="aalen_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -447,8 +433,8 @@ Chisq=2.72 on 1 df, p=0.0992; test weights=aalen</code></pre>
 <li><code>prev</code> =&gt; previous hospitalization has significant effect:</li>
 </ul>
 <div class="cell" data-hash="aalen_cache/html/unnamed-chunk-12_25b9cfe2c5cfe85c8e41ab9d89bfeb2c">
-<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>fit.prev <span class="ot">=</span> <span class="fu">aareg</span>(<span class="at">formula =</span> <span class="fu">Surv</span>(days, status) <span class="sc">~</span> <span class="fu">factor</span>(prev), <span class="at">data =</span> ami)</span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>fit.prev</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>fit.prev <span class="ot">=</span> <span class="fu">aareg</span>(<span class="at">formula =</span> <span class="fu">Surv</span>(days, status) <span class="sc">~</span> <span class="fu">factor</span>(prev), <span class="at">data =</span> ami)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>fit.prev</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Call:
 aareg(formula = Surv(days, status) ~ factor(prev), data = ami)
@@ -462,8 +448,8 @@ factor(prev)1 0.000674 0.00166 0.000444 3.75 1.77e-04
 
 Chisq=14.06 on 1 df, p=0.000177; test weights=aalen</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.prev)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.prev)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="aalen_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -472,8 +458,8 @@ Chisq=14.06 on 1 df, p=0.000177; test weights=aalen</code></pre>
 <li>Fit an additive regression model with all the five covariates. Determine which of covariates have a significant effect on the mortality (using “backwards elimination”), and thereby obtain a “final model” where all covariates have a significant effect. Interpret the estimates of the cumulative baseline and the cumulative regression functions for your “final model”.</li>
 </ol>
 <div class="cell" data-hash="aalen_cache/html/unnamed-chunk-13_a54f70de1d1386f6e55900f7573d03c4">
-<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>fit.all <span class="ot">=</span> <span class="fu">aareg</span>(<span class="at">formula =</span> <span class="fu">Surv</span>(days, status) <span class="sc">~</span> <span class="fu">factor</span>(per) <span class="sc">+</span> age <span class="sc">+</span> <span class="fu">factor</span>(sex) <span class="sc">+</span> enzym <span class="sc">+</span> <span class="fu">factor</span>(prev), <span class="at">data =</span> ami2)</span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>fit.all</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>fit.all <span class="ot">=</span> <span class="fu">aareg</span>(<span class="at">formula =</span> <span class="fu">Surv</span>(days, status) <span class="sc">~</span> <span class="fu">factor</span>(per) <span class="sc">+</span> age <span class="sc">+</span> <span class="fu">factor</span>(sex) <span class="sc">+</span> enzym <span class="sc">+</span> <span class="fu">factor</span>(prev), <span class="at">data =</span> ami2)</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>fit.all</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Call:
 aareg(formula = Surv(days, status) ~ factor(per) + age + factor(sex) + 
@@ -493,14 +479,14 @@ factor(prev)1  0.000647  0.001560 0.000454  3.430 5.98e-04
 
 Chisq=67.78 on 6 df, p=1.16e-12; test weights=aalen</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">4</span>))</span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.all)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">4</span>))</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.all)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="aalen_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <div class="cell" data-hash="aalen_cache/html/unnamed-chunk-14_da9c8844a4c0d54981949351481a89d9">
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit.all, <span class="at">maxtime =</span> <span class="dv">100</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit.all, <span class="at">maxtime =</span> <span class="dv">100</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Call:
 aareg(formula = Surv(days, status) ~ factor(per) + age + factor(sex) + 
@@ -520,16 +506,16 @@ factor(prev)1  0.00277  0.001390 0.000514  2.71 6.77e-03
 
 Chisq=46.16 on 6 df, p=2.75e-08; test weights=aalen</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">4</span>))</span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.all, <span class="at">maxtime =</span> <span class="dv">100</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">4</span>))</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.all, <span class="at">maxtime =</span> <span class="dv">100</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="aalen_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>Let’s keep only the variables in the model that had a significant effect:</p>
 <div class="cell" data-hash="aalen_cache/html/unnamed-chunk-15_81d18357a3c808a09f4a2548d526fee9">
-<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>fit.final <span class="ot">=</span> <span class="fu">aareg</span>(<span class="at">formula =</span> <span class="fu">Surv</span>(days, status) <span class="sc">~</span> age <span class="sc">+</span> enzym <span class="sc">+</span> <span class="fu">factor</span>(prev), <span class="at">data =</span> ami2)</span>
-<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>fit.final</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>fit.final <span class="ot">=</span> <span class="fu">aareg</span>(<span class="at">formula =</span> <span class="fu">Surv</span>(days, status) <span class="sc">~</span> age <span class="sc">+</span> enzym <span class="sc">+</span> <span class="fu">factor</span>(prev), <span class="at">data =</span> ami2)</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>fit.final</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Call:
 aareg(formula = Surv(days, status) ~ age + enzym + factor(prev), 
@@ -546,8 +532,8 @@ factor(prev)1 0.000653 0.001570 0.000450  3.49 4.85e-04
 
 Chisq=62.99 on 3 df, p=1.35e-13; test weights=aalen</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>))</span>
-<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.final)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>))</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.final)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="aalen_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
 </div>
