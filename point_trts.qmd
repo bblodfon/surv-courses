@@ -56,8 +56,8 @@ summary(cox.adj)
 
 1. We will start by estimating the weights. 
 
-- Fit a logistic regression model for treatment (`hormon') conditional on the potential confounders, using the same set of variables as used in the adjusted Cox model in Part A, question 2.
-- Use the previous modelto obtain estimated inverse probability of treatment weights
+- Fit a logistic regression model for treatment (`hormon`) conditional on the potential confounders, using the same set of variables as used in the adjusted Cox model in Part A, question 2.
+- Use the previous model to obtain estimated inverse probability of treatment weights
 $$
 W=\frac{A}{\mathbb{P}(A=1|L)}+\frac{(1-A)}{\mathbb{P}(A=0|L)}.
 $$

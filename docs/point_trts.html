@@ -354,8 +354,8 @@ Score (logrank) test = 743.1  on 10 df,   p=&lt;2e-16</code></pre>
 <li>We will start by estimating the weights.</li>
 </ol>
 <ul>
-<li>Fit a logistic regression model for treatment (`hormon’) conditional on the potential confounders, using the same set of variables as used in the adjusted Cox model in Part A, question 2.</li>
-<li>Use the previous modelto obtain estimated inverse probability of treatment weights <span class="math display">\[
+<li>Fit a logistic regression model for treatment (<code>hormon</code>) conditional on the potential confounders, using the same set of variables as used in the adjusted Cox model in Part A, question 2.</li>
+<li>Use the previous model to obtain estimated inverse probability of treatment weights <span class="math display">\[
 W=\frac{A}{\mathbb{P}(A=1|L)}+\frac{(1-A)}{\mathbb{P}(A=0|L)}.
 \]</span> Take a look at the distribution of the weights.</li>
 </ul>
