@@ -1,0 +1,218 @@
+# Estimating causal effects on time-to-event outcomes under competing risks {-}
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+knitr::opts_chunk$set(comment = NA)
+```
+
+## Data {-}
+
+In this practical we return to the 'rotterdam' data set, which includes data on individuals who underwent surgery for primary breast cancer between 1978 and 1993, and whose data were recorded in the Rotterdam Tumour Bank. The data include information on treatments received alongside a number of individual characteristics. Individuals were followed up for disease recurrence and death for up to a maximum of 19.3 years. This data set is available as part of the 'survival' package in R, and it has been widely used to illustrate survival analysis methods [e.g. see Royston P, Altman D. External validation of a Cox prognostic model: principles and methods. BMC Medical Research Methodology 2013, 13:33].
+
+We will again consider the slightly modified version of the Rotterdam data set in which individual follow-up is recorded in years instead of days, and where we have applied censoring at 10 years. We have also created an additional variable 'enodes' which is a transformation of the nodes variable - this transformation has been used in several previous analyses of these data. Some individuals in the original data set have been excluded, as they had recorded death times after they were censored for recurrence, resulting in a final sample size of 2939 individuals.
+
+![](img/dta_vars.png)
+
+## Aims {-}
+
+The aim is now to estimate the effect of hormone therapy use on time to the first event to occur, of recurrence and death, up to 10 years. As before, we will estimate the population average (marginal) outcomes we would expect if everyone had received hormone therapy (`hormon = 1`) and if everyone had not received hormone therapy (`hormon = 0`) using IPTW weighting and standardisation (g-formula), but this time we will focus on estimation on outcomes under competing risk.
+
+## Load data and packages {-}
+
+As before, load the data and let the treatment variable (`hormon`) be a factor variable.
+
+In this practical we will only use the survival and boot packages.
+
+```{r, message=FALSE}
+library(survival)
+library(boot)
+
+dta = readRDS(file = "data/dta.rds")
+dta$hormon = as.factor(dta$hormon)
+```
+
+## Simple analyses using a composite endpoint {-}
+
+1. Obtain and plot un-adjusted Kaplan-Meier survival curves for time to the composite event of recurrence or death, for people who did and did not receive hormone therapy. How does the result compare to the result you got when looking at time to death only? How do you interpret any differences?
+
+```{r}
+# Calculate and plot K-M for time to composite endpoint:
+kmc = survfit(Surv(rdtime, rd != 0) ~ hormon, data=dta)
+plot(kmc, xlab="Time (years)", ylab="Survival probability",
+  col=c("red", "blue"), lwd=2, conf.int=T)
+legend(x="bottomleft", c("Treatment: No", "Treatment: Yes"),
+  col=c("red", "blue"), lty=1, lwd=2, bty="n")
+# Add grey lines for K-M for time to death only:
+km = survfit(Surv(dtime, death) ~ hormon, data=dta)
+lines(km, col=c("gray","lightgray"), conf.int=T)
+```
+
+2. Now estimate and plot adjusted marginal survival curves for the composite endpoints using the same inverse probability of treatment weights as you made in Exercise 1. Interpret your results.
+
+```{r}
+# Fit model for treatment:
+mod.treat = glm(hormon ~ age + meno + size +
+    as.factor(grade) + enodes + pgr + er +
+    chemo, data=dta, family="binomial")
+# Predict the probability of treatment for each individual:
+pred.treat = predict(mod.treat, data=dta, type="response")
+# Obtain the weight for each person:
+dta$wt = (dta$hormon==1)/pred.treat + (dta$hormon==0)/(1-pred.treat)
+
+# Calculate and plot weighted K-M for time to composite endpoint:
+kmc.wt = survfit(Surv(rdtime, rd != 0) ~ hormon, weights=wt, data=dta)
+plot(kmc.wt, xlab="Time (years)", ylab="Survival probability",
+  col=c("red", "blue"), lwd=2)
+legend(x="bottomleft", c("Treatment: No", "Treatment: Yes"),
+  col=c("red", "blue"), lty=1, lwd=2, bty="n")
+```
+
+3. Run a test for the difference between composite "survival" curves and interpret the results.
+
+```{r}
+coxph(Surv(rdtime, rd != 0) ~ hormon, weights=wt, data=dta)
+```
+
+## Estimating cause-specific cumulative incidence using IPW {-}
+
+From now on, say that the main event of interest is recurrence, with the competing event of death (without recurrence) being present.
+
+1. Calculate and plot unadjusted marginal cause-specific cumulative incidence for both recurrence and death without recurrence. How do these curves compare to the plot in Part A 1?
+
+```{r}
+cuminc = survfit(Surv(rdtime, rd, type="mstate") ~ hormon, dta)
+plot(cuminc, xlab="Time (years)", ylab="Cumulative incidence",
+  col=c("red", "blue"), lwd=2, lty=c(3, 3, 1, 1))
+legend(x="topleft", c("Recurrence (treated)", "Recurrence (untreated)",
+  "Death (treated)", "Death (untreated)"),
+  col=c("blue", "red", "blue", "red"), lty=c(3, 3, 1, 1),
+  lwd=2, bty="n")
+```
+
+2. Calculate and plot adjusted marginal cause-specific cumulative incidence for both recurrence and death without recurrence. How would you describe the total effect of treatment on recurrence? To what degree can there be a indirect effect through the competing event of death without recurrence?
+
+```{r}
+cuminc = survfit(Surv(rdtime, rd, type="mstate") ~ hormon, weights=wt, dta)
+plot(cuminc, xlab="Time (years)", ylab="Cumulative incidence",
+  col=c("red", "blue"), lwd=2, lty=c(3, 3, 1, 1))
+legend(x="topleft", c("Recurrence (untreated)", "Recurrence (treated)",
+  "Death (untreated)", "Death (treated)"),
+  col=c("red", "blue", "red", "blue"), lty=c(3, 3, 1, 1),
+  lwd=2, bty="n")
+```
+
+3. Run a test for the difference between cumulative incidence of recurrence and interpret the results.
+
+```{r}
+# Create new dataset for the subdistribution hazard:
+dta.sub = finegray(Surv(rdtime, rd, type="mstate") ~ ., etype=1, data=dta)
+# Run weighted Cox model on subdistribution dataset:
+coxph(Surv(fgstart, fgstop, fgstatus) ~ hormon, id=pid,
+  weight=wt*fgwt, robust=T, data=dta.sub)
+```
+
+4. Calculate the absolute difference in five year risk of recurrence between the two treatment groups based on the weighted Kaplan-Meier estimates from the prior exercise. Add bootstrap confidence intervals. How do you interpret the results?
+
+```{r}
+# Calculate difference in cumulative incidence F(t) at t=5 years:
+pstate = summary(cuminc, times=5)$pstate
+Fdiff = pstate[2,2] - pstate[1,2]
+Fdiff
+# Bootstrap:
+fdiff = function(data, indices){
+  dataset = data[indices,]
+  # Recalculate weights for each bootstrap sample:
+  mod.treat = glm(hormon ~ age + meno + size +
+      as.factor(grade) + enodes + pgr + er +
+      chemo, data=dataset, family="binomial")
+  pred.treat = predict(mod.treat, data=dataset, type="response")
+  data$wt = (dataset$hormon==1)/pred.treat +
+    (dataset$hormon==0)/(1-pred.treat)
+  # Calculate weighed difference in cumulative incidence:
+  cuminc = survfit(Surv(rdtime, rd, type="mstate") ~ hormon, weights=wt, dataset)
+  pstate = summary(cuminc, times=5)$pstate
+  return(pstate[2,2] - pstate[1,2])
+}
+b1 = boot(data=dta, statistic=fdiff, R=100)
+b1
+boot.ci(b1, type=c("perc", "norm"))
+```
+
+5. Repeat exercise 3, but now for the **restricted mean** (recurrence free) time lost (RMTL) to recurrence after five years. Interpret the results.
+
+```{r}
+# Calculate difference in RMTL at 5 years:
+rmtl = summary(cuminc, rmean=5)$table
+rmtl
+RMTLdiff = rmtl[4, 3] - rmtl[3, 3]
+RMTLdiff
+# Bootstrap:
+fdiff = function(data, indices){
+  dataset = data[indices,]
+  # Recalculate weights for each bootstrap sample:
+  mod.treat = glm(hormon ~ age + meno + size +
+      as.factor(grade) + enodes + pgr + er +
+      chemo, data=dataset, family="binomial")
+  pred.treat = predict(mod.treat, data=dataset, type="response")
+  data$wt = (dataset$hormon==1)/pred.treat +
+    (dataset$hormon==0)/(1-pred.treat)
+  # Calculate weighed difference in cumulative incidence:
+  cuminc = survfit(Surv(rdtime, rd, type="mstate") ~ hormon, weights=wt, dataset)
+  rmtl = summary(cuminc, rmean=5)$table
+  return(rmtl[4, 3] - rmtl[3, 3])
+}
+b2 = boot(data=dta, statistic=fdiff, R=100)
+b2
+boot.ci(b2, type=c("perc", "norm"))
+```
+
+6. EXTRA: Make a plot of the difference between the cumulative incidence curves from $t=0$ to $t=10$ and interpret the results (hint: utilize the `stepfun` function)
+
+```{r}
+Fa1 = stepfun(cuminc["hormon=1",]$time, c(0, cuminc["hormon=1",]$pstate[,2]), right=T)
+Fa0 = stepfun(cuminc["hormon=0",]$time, c(0, cuminc["hormon=0",]$pstate[,2]), right=T)
+times = seq(0, 10, by=0.01)
+plot(times, Fa1(times) - Fa0(times), type="s", lty=3, lwd=2,
+  ylab="Cumulative incidence difference", xlab="Time (years)")
+```
+
+## Estimating cause-specific cumulative incidence using standardisation (g-formula) {-}
+
+1. Fit a Cox proportional hazard model for the cause specific hazard of each event (recurrence and death without recurrence), adjusting for hormon, age, meno, size, grade, enodes, pgr, er and chemo. How would you interpret the output?
+
+```{r}
+c1 = coxph(Surv(rdtime, rd, type="mstate") ~ hormon + age +
+    meno + size + as.factor(grade) + enodes + pgr +
+    er + chemo, id=pid, dta)
+c1
+```
+
+2. Use the Cox model you just fitted to predict the event probabilities from $t=0$ to $t=10$ for an individual with hormon, age, size and grade at the same values as the first individual in the dataset (pid=1) and all other covariates equal to 0.
+
+```{r}
+nd = expand.grid(hormon = dta$hormon[1], age = dta$age[1], meno = c(0),
+  size = dta$size[1], grade = dta$grade[1], enodes = c(0),
+  pgr = c(0), er = c(0), chemo = c(0))
+cuminc.pred = survfit(c1, newdata=nd)
+plot(cuminc.pred, lwd=c(2, 2), lty=c(3, 1), ylab="Cumulative incidence", xlab="Time")
+legend(x="topleft", c("Recurrence", "Death"), lty=c(3, 1), lwd=c(2, 2), bty="n")
+```
+
+3. Calculate marginal adjusted cumulative incidence curves for recurrence by standardisation (g-formula). How do the resulting curves compare to the inverse probability weighted curves produced earlier?
+
+Hint: Predict cumulative incidence as in the previous exercise, for every individual in the dataset, fixing treatment to 1 and then, again, to 0.
+
+```{r}
+# Predict cumulative incidence for hormon=1 and hormon=0, with observed values of L:
+nd1 = dta
+nd0 = dta
+nd1$hormon = "1"; nd0$hormon = "0"
+cuminc.1 = survfit(c1, newdata=nd1)
+cuminc.0 = survfit(c1, newdata=nd0)
+# Average over individual predictions and plot:
+plot(cuminc.0$time, rowMeans(cuminc.0$pstate[,,2]), type="s", col="red", lwd=2, lty=3,
+  xlab="Time", ylab="Cumulative incidence")
+lines(cuminc.1$time, rowMeans(cuminc.1$pstate[,,2]), type="s", col="blue", lwd=2, lty=3)
+legend(x="topleft", c("Recurrence (untreated)", "Recurrence (treated)"),
+  col=c("red", "blue"), lwd=2, lty=3, bty="n")
+```
