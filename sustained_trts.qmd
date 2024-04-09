@@ -1,0 +1,361 @@
+# Marginal structural models and g-formula for sustained treatment strategies {-}
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+knitr::opts_chunk$set(comment = NA)
+```
+
+## Data {-}
+
+In this practical we will use a simulated data set which includes data on 1000 individuals.
+The data include information on time-dependent treatment status $A$, alongside three confounding variables ($X,L_1,L_2$), two of which are time-dependent.
+Individuals were followed up for death for up to 3 years.
+
+![](img/dta_long_vars.png)
+
+You can assume the relationships between the variables is as depicted in the discrete time DAG below, where $Y_t$ denotes the event indicator $D$ at time $t$ ($t=1,2,3$).
+
+![](img/dag1.png)
+
+## Aims {-}
+
+The aim is to **estimate the effect of sustained use of the treatment vs sustained non-use of the treatment on survival up to 3 years**.
+More specifically we will estimate the population average (marginal) survival curves if everyone had received treatment $A$ from time 0 onwards ($a_0=a_1=a_2=1$) and if everyone had not received treatment $A$ from time 0 onwards ($a_0=a_1=a_2=0$).
+The estimands are:
+$$S^{\underline{a}_0=1}(t)=\mathbb{P}(T^{\underline{a}_0=1}>t)$$ $$S^{\underline{a}_0=0}(t)=\mathbb{P}(T^{\underline{a}_0=0}>t)$$
+Estimation will be performed using two methods:
+
+- Marginal structural models estimated using IPTW
+- G-formula
+
+## Load data and packages {-}
+
+In this practical we will use the following packages: `survival`, `tidyverse`, `data.table`, `gfoRmula`:
+
+```{r,result=FALSE,message=FALSE}
+library(survival)
+library(tidyverse)
+library(data.table)
+library(gfoRmula)
+
+dta = readRDS(file = "data/dta_long.rds")
+```
+
+## Marginal structural models (MSMs) estimated using IPTW {-}
+
+In this part we will estimate the estimands of interest, $S^{\underline{a}_0=1}(t)$ and $S^{\underline{a}_0=0}(t)$, using MSMs estimated using time-dependent IPTW to handle the time-dependent confounding.
+We begin by setting up the data and estimating the weights, before using these to fit two MSMs for the hazard:
+$$
+h^{\underline{a}_0}(t)=h_0(t)e^{g(\bar{a}_t;\beta)}.
+$$
+
+1. Start by generating lagged values of treatment $A$ (denoted `A_lag1` and `A_lag2`) and lagged values of the time-dependent covariates $L_1$ (`L1_lag1`, `L1_lag2`) and $L_2$ (`L2_lag1`, `L2_lag2`).
+These will be used later.
+The lag variables can be generated (for example) using the `tidyverse` package, e.g. `dta = dta %>% group_by(id) %>% mutate(A_lag1=lag(A,1,default=0))`
+
+```{r}
+dta = dta%>%group_by(id)%>%
+  mutate(A_lag1=lag(A,1,default=0),A_lag2=lag(A,2,default=0))%>%
+  mutate(L1_lag1=lag(L1,1,default=0),L1_lag2=lag(L1,2,default=0))%>%
+  mutate(L2_lag1=lag(L2,1,default=0),L2_lag2=lag(L2,2,default=0))
+```
+
+2. In this question we will estimate time-dependent inverse probability of treatment weights:
+
+a. Using a logistic regression, fit a model for the probability of treatment at a given time, conditional on the current values of $L_1,L_2$, treatment at the previous time point, baseline covariate $X$, and an indicator for visit.
+b. Use the model to calculate the inverse probability of treatment weights at each time point. 
+$$
+W(t)=\prod_{k=0}^{t}\frac{1}{\mathbb{P}(A_k|A_{k-1},X,L_{1k},L_{2k})}, \quad t=0,1,2
+$$
+c. Check out the distribution of the weights
+
+```{r}
+iptw.mod = glm(A~A_lag1+A_lag2+X+L1+L2+as.factor(visit),data=dta,family="binomial")
+
+pred.iptw = predict(iptw.mod,newdata=dta,type="response")
+
+dta$iptw = dta$A/pred.iptw+(1-dta$A)/(1-pred.iptw)
+
+dta$iptw = ave(dta$iptw,dta$id,FUN=cumprod)
+
+hist(dta$iptw)
+```
+
+3. The weights estimated in question 1 are unstabilized. 
+Obtain stabilized weights of the form below, and have a look at their distribution.
+$$
+SW(t)=\prod_{k=0}^{t}\frac{\mathbb{P}(A_k|A_{k-1})}{\mathbb{P}(A_k|A_{k-1},X,L_{1t},L_{2t})}, \quad t=0,1,2
+$$
+
+```{r}
+iptw.mod.stab = glm(A~A_lag1+A_lag2+as.factor(visit),data=dta,family="binomial")
+
+pred.iptw.stab = predict(iptw.mod.stab,newdata=dta,type="response")
+
+dta$iptw.stab = dta$A*pred.iptw.stab/pred.iptw+(1-dta$A)*(1-pred.iptw.stab)/(1-pred.iptw)
+
+dta$iptw.stab = ave(dta$iptw.stab,dta$id,FUN=cumprod)
+
+hist(dta$iptw.stab)
+```
+4. We will now use the weights to fit an MSM of the form $h^{\underline{a}_0}(t)=h_0(t)e^{\beta a_t}$, i.e. an MSM that states that the hazard depends only on current treatment. Try this with the unstabilized and stabilized weights:
+
+a. Fit the MSM using a weighted Cox regression. This can be done
+using `coxph} with the `weights} option.
+b. Use the MSM to obtain estimated survival curves under the treatment strategies (i) $a_0=a_1=a_2=1$, (ii) $a_0=a_1=a_2=0$.
+This can be done using `survfit(cox.msm1,newdata=data.frame(A=1))` for strategy (i), for example.
+c. Obtain estimates of the survival probabilities at time 3 under the two treatment strategies, i.e. $S^{\underline{a}_0=1}(3)$ and $S^{\underline{a}_0=0}(3)$, and the corresponding risk difference.
+
+```{r}
+#---
+#MSM1: Assumes that the hazard depends only on current A
+#change iptw.stab to iptw for unstabilized weights.
+cox.msm1=coxph(Surv(T.start,T.stop,D)~A,
+               data=dta,weights = dta$iptw.stab) 
+summary(cox.msm1)
+
+#---
+#Getting marginal survival curves under the two treatment strategies
+surv.A1.msm1 = survfit(cox.msm1,newdata=data.frame(A=1))$surv
+surv.A0.msm1 = survfit(cox.msm1,newdata=data.frame(A=0))$surv
+
+#---
+#Plotting marginal survival curves under the two treatment strategies
+times=survfit(cox.msm1,newdata=data.frame(A=0))$time 
+
+plot(times,surv.A1.msm1,type="s",col="blue",lwd=2,
+     xlab="Time",ylab="Survival probability",ylim=c(0,1))
+lines(times,surv.A0.msm1,type="s",col="red",lwd=2)
+legend("bottomleft",c("MSM1: Sustained A=1","MSM1: Sustained A=0"),
+       col=c("blue","red"),lwd=2)
+
+#---
+#survival probabilities and risk difference at time 3
+summary(survfit(cox.msm1,newdata=data.frame(A=1)),times=3)$surv
+summary(survfit(cox.msm1,newdata=data.frame(A=0)),times=3)$surv
+
+risk.A1.msm1.t3 = 1-summary(survfit(cox.msm1,newdata=data.frame(A=1)),times=3)$surv
+risk.A0.msm1.t3 = 1-summary(survfit(cox.msm1,newdata=data.frame(A=0)),times=3)$surv
+
+risk.A1.msm1.t3-risk.A0.msm1.t3
+```
+
+5. Repeat question 3 using an MSM of the following form, where the hazard is allowed to depend on the history of treatment:
+$$
+h^{\underline{a}_0}(t)=h_0(t)e^{\beta_0 a_t+\beta_1 a_{t-1}+\beta_2 a_{t-2}}.
+$$
+To obtaining the survival curves under the two treatment strategies based on this MSM, we need to take into account that treatment status $A$ is assumed to be 0 before time, i.e. everyone is untreated before time zero.
+This means that we cannot obtain the survival probability estimates using a single `survfit` command (as far as we know!).
+You may wish to follow the code in the solution for this part.
+```{r}
+#---
+#MSM2: Assumes that the hazard depends on all lags of A
+cox.msm2=coxph(Surv(T.start,T.stop,D)~A+A_lag1+A_lag2,
+               data=dta,weights = dta$iptw.stab)
+summary(cox.msm2)
+
+#---
+#Getting marginal survival curves under the two treatment strategies
+
+#baseline cumulative hazard
+cumhaz=basehaz(cox.msm2,centered=F)$hazard
+times=basehaz(cox.msm2,centered=F)$time 
+
+#hazards at each event time, obtained from the increments in the cumulative hazard
+haz = diff(c(0,cumhaz))
+
+#cumulative hazard and survival probability at each event time 
+#under treatment strategy "always treated"
+
+cumhaz.A1 = cumsum(haz*exp(cox.msm2$coef["A"]+
+                                  cox.msm2$coef["A_lag1"]*(times>=1)+
+                                  cox.msm2$coef["A_lag2"]*(times>=2)))
+cumhaz.A0 = cumsum(haz)
+
+surv.A1.msm2 = exp(-cumhaz.A1)
+surv.A0.msm2 = exp(-cumhaz.A0)
+
+#---
+#Plotting marginal survival curves under the two treatment strategies
+plot(times,surv.A1.msm2,type="s",col="blue",lwd=2,
+     xlab="Time",ylab="Survival probability",ylim=c(0,1))
+lines(times,surv.A0.msm2,type="s",col="red",lwd=2)
+legend("bottomleft",c("MSM2: Sustained A=1","MSM2: Sustained A=0"),
+       col=c("blue","red"),lwd=2)
+
+#---
+#risk difference at time 3
+risk.A1.msm2.t3 = 1-stepfun(times,c(1,surv.A1.msm2))(3)
+risk.A0.msm2.t3 = 1-stepfun(times,c(1,surv.A0.msm2))(3)
+
+rd.msm2.time3 = risk.A1.msm2.t3-risk.A0.msm2.t3
+```
+
+```{r}
+#---
+#compare marginal survival curves from the two MSMs
+plot(times,surv.A1.msm1,type="s",col="blue",lwd=2,
+     xlab="Time",ylab="Survival probability",ylim=c(0,1))
+lines(times,surv.A0.msm1,type="s",col="red",lwd=2)
+
+lines(times,surv.A1.msm2,type="s",col="blue",lwd=2,lty=2)
+lines(times,surv.A0.msm2,type="s",col="red",lwd=2,lty=2)
+
+legend("bottomleft",c("MSM1: Sustained A=1","MSM1: Sustained A=0",
+                      "MSM2: Sustained A=1","MSM2: Sustained A=0"),
+       col=rep(c("blue","red"),4),lty=rep(c(1:4),each=2),lwd=2)
+```
+
+## g-formula {-}
+
+1. Follow the steps below to implement the parametric g-formula `by hand' to estimate $S^{\underline{a}_0=1}(t)$ and $S^{\underline{a}_0=0}(t)$.
+We hope that this provides some insight into how this method works.
+
+What are the estimated marginal survival probabilities at times $t=1,2,3$ under the two treatment strategies?
+
+```{r}
+#---------------------
+#(a) Fit a linear regression for  L1_{k}|L1_{k-1}, L2_{k-1},X,A_{k-1} 
+#where k denotes visit, for visits 1 and 2 combined.
+#---------------------
+mod.L1 = lm(L1~A_lag1+X+L1_lag1+L2_lag1+as.factor(T.start),data=dta[dta$T.start>=1,])
+sd.L1 = summary(mod.L1)$sigma#residual SE, used later
+
+#---------------------
+#(b)] Fit a logistic regression for L2_{k}|L1_{k}, L2_{k-1},X,A_{k-1} 
+#where k denotes visit, for visits 1 and 2 combined.
+#---------------------
+mod.L2 = glm(L2~A_lag1+X+L1+L2_lag1+as.factor(T.start),
+            data=dta[dta$T.start>=1,],family="binomial")
+
+#---------------------
+#(c) Fit a logistic regression for Y_{k}|L1_{k-1}, L2_{k-1},X,A_{k-1} 
+#where k denotes visit, for visits 0, 1, and 2 combined. 
+#This is a discrete time hazard model.
+#---------------------
+mod.D = glm(D~A+X+L1+L2+as.factor(T.start),data=dta,family="binomial")
+
+#---------------------
+#(d) Create a new data frame with the same columns names as dta, 
+#with 3 rows per individual. This data set will be populated in later steps.
+#---------------------
+n = length(unique(dta$id))
+
+dta.sim = data.frame(id=rep(1:n,each=3),T.start=rep(0:2,n),
+                    X=NA,A=NA,L1=NA,L2=NA,A_lag1=NA,L1_lag1=NA,L2_lag1=NA,haz=NA)
+
+#---------------------
+#(e) In dta.sim set A to a (for a=0,1) at all time points for all individuals. 
+#Set X to the observed values.
+#Set L1 and L2 to their observed values at visit 0. 
+#---------------------
+#set a to 1 or 0, depending on treatment strategy of interest
+a = 0
+dta.sim$A=a
+dta.sim$A_lag1=ifelse(dta.sim$T.start==0,0,a)
+  
+dta.sim$X=rep(dta$X[dta$T.start==0],each=3)
+  
+dta.sim$L1[dta.sim$T.start==0] = dta[dta$T.start==0,]$L1
+dta.sim$L1_lag1[dta.sim$T.start==0] = 0
+  
+dta.sim$L2[dta.sim$T.start==0] = dta[dta$T.start==0,]$L2
+dta.sim$L2_lag1[dta.sim$T.start==0] = 0
+
+#---------------------
+#(f) Simulate a value of L1 at time 1 for each individual by sampling from a normal
+#distribution with mean given by the fitted value from the linear regression in step (a) 
+#and standard deviation given by the residual standard error.
+#---------------------
+dta.sim$L1_lag1[dta.sim$T.start==1] = dta.sim$L1[dta.sim$T.start==0]
+dta.sim$L2_lag1[dta.sim$T.start==1] = dta.sim$L2[dta.sim$T.start==0]
+mean.L1 = predict(mod.L1,newdata=dta.sim[dta.sim$T.start==1,],type="response")
+dta.sim$L1[dta.sim$T.start==1] = rnorm(n,mean.L1,sd.L1)
+  
+#---------------------
+#(g) Simulate a value of L2 at time 1 for each individual by sampling from a Bernoulli
+#distribution with probability given by the predicted probabilities from the logistic
+#regression in step (b). 
+#---------------------
+mean.L2 = predict(mod.L2,newdata=dta.sim[dta.sim$T.start==1,],type="response")
+dta.sim$L2[dta.sim$T.start==1] = rbinom(n,1,mean.L2)
+  
+#---------------------
+#(h) Simulate a value of L2 at time 2 for each individual in a similar way as in step (f).
+#---------------------
+dta.sim$L1_lag1[dta.sim$T.start==2] = dta.sim$L1[dta.sim$T.start==1]
+dta.sim$L2_lag1[dta.sim$T.start==2] = dta.sim$L2[dta.sim$T.start==1]
+mean.L1 = predict(mod.L1,newdata=dta.sim[dta.sim$T.start==2,],type="response")
+dta.sim$L1[dta.sim$T.start==2] = rnorm(n,mean.L1,sd.L1)
+
+#---------------------
+#(i) Simulate a value of L2 at time 2 for each individual, in a similar way as in step (g).
+#---------------------
+mean.L2 = predict(mod.L2,newdata=dta.sim[dta.sim$T.start==2,],type="response")
+dta.sim$L2[dta.sim$T.start==2] = rbinom(n,1,mean.L2)
+
+#---------------------
+#(j) Estimate the (discrete time) hazard at times t=1,2,3 for each individual 
+# using the model fitted in step (c), 
+# using the simulated covariate values from previous steps.
+#---------------------
+for(j in 0:2){
+  dta.sim$haz[dta.sim$T.start==j] = predict(mod.D,newdata=dta.sim[dta.sim$T.start==j,],
+                                           type="response")
+}
+  
+#---------------------
+#(k) Estimate the conditional survival probability under treatment strategy 
+# at times t=1,2,3 for each individual 
+# using the discrete-time hazards estimated in the previous step.
+#---------------------
+dta.sim$surv.prob = ave(1-dta.sim$haz,dta.sim$id,FUN=cumprod)
+  
+#---------------------
+#(l) Calculate the mean survival probability at times t=1,2,3. 
+#This is our estimate of the marginal survival probability 
+#under the sustained treatment strategy a0=a1=a2=a
+#---------------------
+sapply(0:2,FUN=function(x){mean(dta.sim$surv.prob[dta.sim$T.start==x])})
+```
+
+2. Use the `gformula_survival` function in the `gfoRmula` package to implement the parametric g-formula, by adapting the example in the lecture slides.
+What are the estimated marginal survival probabilities at times $t=1,2,3$ under the two treatment strategies?
+
+```{r}
+#data has to be in the form of a data table
+dta.gform = data.table(dta)
+
+#apply gformula function
+gform =  gformula_survival(obs_data = dta.gform, 
+                          id = 'id',
+                          time_points = 3,
+                          time_name = 'T.start', 
+                          covnames = c('A','L1','L2'),
+                          covtypes = c('binary','normal','binary'),
+                          covparams = 
+                            list(covlink = c('logit', 'identity', 'logit'),
+                                 covmodels = 
+                                   c(A ~ lag1_A + X + L1 + L2 + as.factor(T.start),
+                                     L1 ~ lag1_A + X + lag1_L1 + lag1_L2 + as.factor(T.start),
+                                     L2 ~ lag1_A + X + L1 + lag1_L2 + as.factor(T.start))),
+                          histvars = list(c('A', 'L1', 'L2')),
+                          histories = c(lagged),
+                          basecovs = 'X',
+                          outcome_name = 'D',
+                          ymodel = D ~ A + X + L1 + L2 + as.factor(T.start),
+                          intvars = list('A', 'A'),
+                          interventions = list(list(c(static, rep(0, 3))),
+                                               list(c(static, rep(1, 3)))),
+                          int_times = list(c(0:2),c(0:2)),
+                          int_descript = c('Never treat', 'Always treat'),
+                          sim_data_b = FALSE,
+                          seed = 1234,
+                          nsamples = 10, 
+                          #number of bootstrap samples: 
+                          #set to 10 here in the interests of time, but recommend using 1000
+                          model_fits = TRUE,
+                          show_progress = TRUE)
+
+gform$result
+```
