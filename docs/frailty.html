@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.353">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Various code examples and methodologies for survival analysis">
+
+<title>Material on Survival Analyses - Frailty models for clustered data</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./ncc.html" rel="next">
+<link href="./mstate.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+</head>
+
+<body class="nav-sidebar floating">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./frailty.html">Frailty models for clustered data</a></li></ol></nav>
+      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+      </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Material on Survival Analyses</a> 
+        <div class="sidebar-tools-main">
+    <a href="https://github.com/bblodfon/surv-courses/" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Intro</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./na_km_logrank.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Non-parametric estimators</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cox_regr.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Cox Regression (low-dim)</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cox_regr_high_dim.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Cox regression (high-dim)</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./aalen.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Additive regression</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./mstate.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Multi-state models</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./frailty.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Frailty models for clustered data</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ncc.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Case-control studies</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+        
+    </div>
+<!-- main -->
+<main class="content column-page-right" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Frailty models for clustered data</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<div class="cell" data-hash="frailty_cache/html/libs_dc84c639096bc3c1b8ed75bc4a8e7bd7">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survival)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(parfm)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tibble)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The Diabetic Retinopathy Study was conducted in the US by the National Eye Institute to <strong>assess the effect of laser photocoagulation in delaying onset of severe visual loss (“blindness”)</strong> in patients with diabetic retinopathy. One eye of each patient was randomly selected for photocoagulation and the other was observed without treatment. The patients were followed over several years for the occurrence of blindness (<strong>event = blindness</strong>) in their left and right eyes. Censoring is caused by death, dropout, or end of the study. We consider only a subset of the original data set containing <span class="math inline">\(197\)</span> high risk patients. See Huster et al, 1989, Biometrics, for a discussion and further references.</p>
+<p>There are <strong>two lines for each patient</strong> in the data set: <em>one line per eye</em>. The variables are:</p>
+<ul>
+<li>id: patient number</li>
+<li>trteye: treated eye (1=right, 2=left)</li>
+<li>ageonset: age at diagnosis of diabetes</li>
+<li>typediab: type of diabetes (1= juvenile age at onset &lt; 20 years , 2=adult)</li>
+<li>time: follow-up time in months</li>
+<li>status: status for eye (0=censored, 1=blindness)</li>
+<li>trt: treatment of eye (1=control eye, 2=treated eye)</li>
+</ul>
+<p>Before you start, you will have to read the data. Use the R-command:</p>
+<div class="cell" data-hash="frailty_cache/html/unnamed-chunk-1_bde1ae16f56a2f9be6d35bbcc985671f">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>eye<span class="ot">=</span><span class="fu">read.table</span>(<span class="st">"https://www.med.uio.no/imb/english/research/centres/ocbe/courses/imb9335/retinopathy.txt"</span>, <span class="at">header=</span>T) <span class="sc">%&gt;%</span> <span class="fu">as_tibble</span>()</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>eye</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 394 × 7
+      id trteye ageonset typediab status  time   trt
+   &lt;int&gt;  &lt;int&gt;    &lt;int&gt;    &lt;int&gt;  &lt;int&gt; &lt;dbl&gt; &lt;int&gt;
+ 1     5      2       28        2      0 46.2      1
+ 2    14      1       12        1      1 31.3      1
+ 3    16      1        9        1      0 42.3      1
+ 4    25      2        9        1      0 20.6      1
+ 5    29      2       13        1      1  0.3      1
+ 6    46      1       12        1      1 54.3      1
+ 7    49      1        8        1      1 10.8      1
+ 8    56      1       12        1      0 23.2      1
+ 9    61      1       16        1      0  1.47     1
+10    71      1       21        2      1 13.8      1
+# ℹ 384 more rows</code></pre>
+</div>
+</div>
+<p>We start out by only using treatment as a covariate.</p>
+<ol type="a">
+<li>We first fit a model with Weibull baseline and no frailty by the command:</li>
+</ol>
+<div class="cell" data-hash="frailty_cache/html/unnamed-chunk-2_37f4fb347b65ef3a8f81c3f57ae1b593">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>nofrail.model <span class="ot">=</span> <span class="fu">parfm</span>(<span class="fu">Surv</span>(time,status)<span class="sc">~</span><span class="fu">factor</span>(trt),<span class="at">data=</span>eye)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>nofrail.model</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Frailty distribution: none 
+Baseline hazard distribution: Weibull 
+Loglikelihood: -836.379 
+
+             ESTIMATE SE    p-val    
+rho           0.810   0.058          
+lambda        0.032   0.008          
+factor(trt)2 -0.790   0.169 &lt;.001 ***
+---
+Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<div class="cell" data-hash="frailty_cache/html/unnamed-chunk-3_9da43130ec8e74c63847b979bfba58df">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ci.parfm</span>(nofrail.model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>               low    up
+factor(trt)2 0.326 0.632</code></pre>
+</div>
+</div>
+<p>Perform the command, and make sure that you understand what the output tells you.</p>
+<ol start="2" type="a">
+<li>We then fit a model with Weibull baseline and gamma frailty:</li>
+</ol>
+<div class="cell" data-hash="frailty_cache/html/unnamed-chunk-4_d58b380d5264c1ceaae1da5c687307bb">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>frail.model <span class="ot">=</span> <span class="fu">parfm</span>(<span class="fu">Surv</span>(time,status)<span class="sc">~</span><span class="fu">factor</span>(trt),<span class="at">cluster=</span><span class="st">"id"</span>, <span class="at">frailty=</span><span class="st">"gamma"</span>, <span class="at">data=</span>eye)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>frail.model</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Frailty distribution: gamma 
+Baseline hazard distribution: Weibull 
+Loglikelihood: -827.744 
+
+             ESTIMATE SE    p-val    
+theta         1.040   0.329          
+rho           0.948   0.075          
+lambda        0.028   0.007          
+factor(trt)2 -0.960   0.182 &lt;.001 ***
+---
+Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Kendall's Tau: 0.342 </code></pre>
+</div>
+</div>
+<p>Perform the command, and compare with the result for the model without frailty. Is there a <strong>significant frailty effect</strong>?</p>
+<div class="cell" data-hash="frailty_cache/html/unnamed-chunk-5_d35592beeb6903a3a81b311e4a1b5ee1">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>LR<span class="ot">=</span><span class="dv">2</span><span class="sc">*</span>(<span class="fu">attributes</span>(frail.model)<span class="sc">$</span>loglik <span class="sc">-</span> <span class="fu">attributes</span>(nofrail.model)<span class="sc">$</span>loglik)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>LR</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 17.26943</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>(<span class="dv">1</span><span class="sc">-</span><span class="fu">pchisq</span>(LR, <span class="dv">1</span>))<span class="sc">/</span><span class="dv">2</span> <span class="co"># YES!</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1.621814e-05</code></pre>
+</div>
+</div>
+<ul>
+<li><strong>Significant risk variation between the clusters (individuals here)!</strong></li>
+</ul>
+<ol start="3" type="a">
+<li>Fit a model with gamma frailty and treatment and age at onset as covariates. Is there a significant effect of age at onset? What about type of diabetes?</li>
+</ol>
+<div class="cell" data-hash="frailty_cache/html/unnamed-chunk-6_a4a2697965f7ade08d0cdd636727d7c3">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>frail.model.ageonset <span class="ot">=</span> <span class="fu">parfm</span>(<span class="fu">Surv</span>(time,status)<span class="sc">~</span><span class="fu">factor</span>(trt) <span class="sc">+</span> ageonset, <span class="at">cluster=</span><span class="st">"id"</span>, <span class="at">frailty=</span><span class="st">"gamma"</span>, <span class="at">data=</span>eye)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>frail.model.ageonset <span class="co"># NO! (coef close to 0, p-value large)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Frailty distribution: gamma 
+Baseline hazard distribution: Weibull 
+Loglikelihood: -827.469 
+
+             ESTIMATE SE    p-val    
+theta         1.034   0.328          
+rho           0.948   0.075          
+lambda        0.025   0.008          
+factor(trt)2 -0.966   0.182 &lt;.001 ***
+ageonset      0.006   0.008 0.456    
+---
+Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Kendall's Tau: 0.341 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>frail.model.typediab <span class="ot">=</span> <span class="fu">parfm</span>(<span class="fu">Surv</span>(time,status)<span class="sc">~</span><span class="fu">factor</span>(trt) <span class="sc">+</span> <span class="fu">factor</span>(typediab), <span class="at">cluster=</span><span class="st">"id"</span>, <span class="at">frailty=</span><span class="st">"gamma"</span>, <span class="at">data=</span>eye)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>frail.model.typediab <span class="co"># NO! (coef close to 0, p-value large)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Frailty distribution: gamma 
+Baseline hazard distribution: Weibull 
+Loglikelihood: -827.73 
+
+                  ESTIMATE SE    p-val    
+theta              1.037   0.329          
+rho                0.947   0.075          
+lambda             0.028   0.008          
+factor(trt)2      -0.961   0.182 &lt;.001 ***
+factor(typediab)2  0.040   0.232 0.864    
+---
+Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Kendall's Tau: 0.341 </code></pre>
+</div>
+</div>
+<ol start="4" type="a">
+<li>Fit a <strong>Cox frailty model</strong> (with gamma frailty) using treatment as the only covariate (see lectures for R commands). Compare the results with those you obtained in question b.</li>
+</ol>
+<div class="cell" data-hash="frailty_cache/html/unnamed-chunk-7_d452f64b3ba68b5734fbf2499fe6ee68">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>frail.cox <span class="ot">=</span> <span class="fu">coxph</span>(<span class="fu">Surv</span>(time,status) <span class="sc">~</span> <span class="fu">factor</span>(trt) <span class="sc">+</span> <span class="fu">frailty</span>(id), <span class="at">data=</span>eye)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>frail.cox</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Call:
+coxph(formula = Surv(time, status) ~ factor(trt) + frailty(id), 
+    data = eye)
+
+                coef se(coef)     se2   Chisq   DF       p
+factor(trt)2  -0.910    0.174   0.171  27.295  1.0 1.7e-07
+frailty(id)                           114.448 84.6   0.017
+
+Iterations: 6 outer, 30 Newton-Raphson
+     Variance of random effect= 0.854   I-likelihood = -850.9 
+Degrees of freedom for terms=  1.0 84.6 
+Likelihood ratio test=201  on 85.6 df, p=3e-11
+n= 394, number of events= 155 </code></pre>
+</div>
+</div>
+<div class="cell" data-hash="frailty_cache/html/unnamed-chunk-8_70869d3310c29d3450452cbae0812ce7">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># cox with no frailty</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>cox <span class="ot">=</span> <span class="fu">coxph</span>(<span class="fu">Surv</span>(time, status) <span class="sc">~</span> <span class="fu">factor</span>(trt), <span class="at">data =</span> eye)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>LRcox <span class="ot">=</span> <span class="dv">2</span><span class="sc">*</span>(frail.cox<span class="sc">$</span>history<span class="sc">$</span>frailty<span class="sc">$</span>c.loglik <span class="sc">-</span> cox<span class="sc">$</span>loglik[<span class="dv">2</span>])</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>LRcox <span class="co"># log-likelihood ratio</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 11.88032</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span> <span class="sc">-</span> <span class="fu">pchisq</span>(LRcox,<span class="at">df=</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.0005673029</code></pre>
+</div>
+</div>
+<ol start="5" type="a">
+<li>Finally we want to illustrate how stratified Cox regression can be used to analyse paired survival data like the ones we have in the present situation. We may fit a stratified Cox model with <strong>a separate baseline for each patient (per eye pair pretty much)</strong> by the commands:</li>
+</ol>
+<div class="cell" data-hash="frailty_cache/html/unnamed-chunk-9_a6269c6637b735bc84aa99b442d3f5f2">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>eyefit.strat<span class="ot">=</span><span class="fu">coxph</span>(<span class="fu">Surv</span>(time,status)<span class="sc">~</span>trt<span class="sc">+</span><span class="fu">strata</span>(id),<span class="at">data=</span>eye)</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(eyefit.strat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Call:
+coxph(formula = Surv(time, status) ~ trt + strata(id), data = eye)
+
+  n= 394, number of events= 155 
+
+       coef exp(coef) se(coef)      z Pr(&gt;|z|)    
+trt -0.9623    0.3820   0.2016 -4.773 1.82e-06 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+    exp(coef) exp(-coef) lower .95 upper .95
+trt     0.382      2.618    0.2573    0.5672
+
+Concordance= 0.748  (se = 0.058 )
+Likelihood ratio test= 25.49  on 1 df,   p=4e-07
+Wald test            = 22.78  on 1 df,   p=2e-06
+Score (logrank) test = 24.59  on 1 df,   p=7e-07</code></pre>
+</div>
+</div>
+<p>Explain the idea behind such an approach, and discuss how it compares to the approach in question d).</p>
+<p>We got same approximately results! Why? See equation (slide no. 24): <span class="math inline">\(a_{ij}(t|Z_i) = Z_i a_0(t) e^{\beta x_{ij}}\)</span></p>
+<ul>
+<li>Cox model uses different baseline hazards per stratum (<span class="math inline">\(Z_i=1\)</span>)</li>
+<li>Parametric Frailty models are better in most practical applications (<span class="math inline">\(a_0(t)\)</span> same for all individuals, <span class="math inline">\(Z_i\)</span> varies and is estimated)</li>
+</ul>
+
+
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation column-page-right">
+  <div class="nav-page nav-page-previous">
+      <a href="./mstate.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Multi-state models</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./ncc.html" class="pagination-link">
+        <span class="nav-page-text">Case-control studies</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+</body></html>
