@@ -23,6 +23,7 @@ book:
     - ncc.qmd
     - point_trts.qmd
     - time_dep_trts.qmd
+    - sustained_trts.qmd
 
 format:
   html:

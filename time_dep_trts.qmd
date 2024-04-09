@@ -161,7 +161,7 @@ dta.split$censored  =  ave(dta.split$D, dta.split$id, FUN = function(x){
 dta.split$censored  = ifelse(dta.split$T.stop==3 & dta.split$D==0,0,dta.split$censored) 
 
 # Fit pooled logistic regressions with censoring as outcome
-cwfit.denum = glm(censored ~ ns(T.start,df=4) + A + X + L1 + L2, 
+cwfit.denum = glm(censored ~ splines::ns(T.start,df=4) + A + X + L1 + L2, 
                    family=binomial, data=dta.split)
 
 # Predict individual censoring probabilities over time:
