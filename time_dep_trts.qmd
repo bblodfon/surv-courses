@@ -23,7 +23,7 @@ The variables in the data are listed in the table below.
 
 You can assume the relationships between the variables is as depicted in the discrete time DAG below, where $Y_t$ denotes the event indicator $D$ at time $t$ ($t=1,2,3$).
 
-![](dag1.png)
+![](img/dag1.png)
 
 ## Aims {-}
 
