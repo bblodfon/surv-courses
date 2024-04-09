@@ -2,6 +2,9 @@ project:
   type: book
   output-dir: docs
 
+execute:
+  freeze: auto
+
 book:
   title: "Material on Survival Analyses"
   author: "[John Zobolas](https://github.com/bblodfon)"
@@ -18,6 +21,8 @@ book:
     - mstate.qmd
     - frailty.qmd
     - ncc.qmd
+    - point_trts.qmd
+    - time_dep_trts.qmd
 
 format:
   html:

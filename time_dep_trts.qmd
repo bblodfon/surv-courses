@@ -42,7 +42,7 @@ library(survival)
 library(tidyverse)
 library(splines)
 
-dta = readRDS(file = "dta_long.rds")
+dta = readRDS(file = "data/dta_long.rds")
 ```
 
 ## Impact of baseline treatment status and using IPCW {-}

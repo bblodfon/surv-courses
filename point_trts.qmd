@@ -43,7 +43,7 @@ library(survival)
 library(adjustedCurves)
 library(riskRegression)
 
-dta = readRDS(file = "dta.rds")
+dta = readRDS(file = "data/dta.rds")
 dta$hormon<-as.factor(dta$hormon)
 ```
 
