@@ -4,3 +4,4 @@ getopt
 os
 sys
 sysconfig
+*_cache/
