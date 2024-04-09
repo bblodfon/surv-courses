@@ -5,3 +5,4 @@ os
 sys
 sysconfig
 *_cache/
+*_files/
