@@ -9,17 +9,7 @@ knitr::opts_chunk$set(comment = NA)
 
 In this practical we will use a simulated data set, which includes data on 1000 individuals. The data include information on time-dependent treatment status $A$, alongside three confounding variables ($X,L_1,L_2$), two of which are time-dependent. Individuals were followed up for death for up to 3 years.
 
-The variables in the data are listed in the table below.
-
-- id => Individual identifier
-- visit => Visit number (0,1,2)
-- A => Treatment status, $A=0,1$, time-dependent
-- X => Time-fixed confounder, continuous
-- L1 => Time-dependent confounder, continuous
-- L2 => Time-dependent confounder, binary
-- T.start => Start time of follow-up period
-- T.stop => Stop time of follow-up period
-- D => Time-updated event indicator corresponding to T.stop
+![](img/dta_long_vars.png)
 
 You can assume the relationships between the variables is as depicted in the discrete time DAG below, where $Y_t$ denotes the event indicator $D$ at time $t$ ($t=1,2,3$).
 
@@ -61,9 +51,9 @@ table(dta$D)
 2. Generate the baseline values of $A,L_1,L_2$ (i.e. the values at time 0) so that the baseline values are stored in each row of data for a given individual. We will refer to these as $A_0, L_{10}, L_{20}$.
 
 ```{r}
-dta$A0 <- ave(dta$A, dta$id, FUN=function(x){x[1]})
-dta$L10 <- ave(dta$L1, dta$id, FUN=function(x){x[1]})
-dta$L20 <- ave(dta$L2, dta$id, FUN=function(x){x[1]})
+dta$A0 = ave(dta$A, dta$id, FUN=function(x){x[1]})
+dta$L10 = ave(dta$L1, dta$id, FUN=function(x){x[1]})
+dta$L20 = ave(dta$L2, dta$id, FUN=function(x){x[1]})
 
 head(dta)
 ```
@@ -71,7 +61,7 @@ head(dta)
 3. Perform an unweighted (i.e. unadjusted) Kaplan-Meier analysis by treatment status at baseline, $A_0$, and plot the estimated survival curves. Here we need to take account of the long format of the data using `Surv(T.start,T.stop,D)` in `survfit`. What is the crude association between $A_0$ and survival? Obtain the estimated survival probabilities at time 3. 
 
 ```{r}
-km.unwt<-survfit(Surv(T.start,T.stop,D)~A0,data=dta)
+km.unwt = survfit(Surv(T.start,T.stop,D)~A0,data=dta)
 
 plot(km.unwt, xlab="Time",ylab="Survival probability",
      col=c("red","blue"),lwd=2,conf.int=F,main="")
@@ -94,17 +84,17 @@ c. Plot and interpret the estimated survival curves under the two treatment stra
 
 ```{r}
 #Fit the model for treatment at baseline
-mod.treat<-glm(A0~X+L10+L20,
+mod.treat = glm(A0~X+L10+L20,
                data=dta[dta$T.start==0,],family="binomial")
 
 #predicted probability of treatment from the model for each individual
-pred.treat<-predict(mod.treat,newdata=dta,type="response")
+pred.treat = predict(mod.treat,newdata=dta,type="response")
 
 #Obtain the weight for each person
-dta$iptw<-(dta$A0==1)/pred.treat+(dta$A0==0)/(1-pred.treat)
+dta$iptw = (dta$A0==1)/pred.treat+(dta$A0==0)/(1-pred.treat)
 
 #Weighted Kaplan-Meier
-km.wt<-survfit(Surv(T.start,T.stop,D)~A0,data=dta,weights = dta$iptw)
+km.wt = survfit(Surv(T.start,T.stop,D)~A0,data=dta,weights = dta$iptw)
 
 plot(km.wt, xlab="Time",ylab="Survival probability",
      col=c("red","blue"),lwd=2,conf.int=F,main="")
@@ -128,27 +118,27 @@ e. Plot and interpret the estimated survival curves under the two treatment stra
 
 ```{r}
 # Create event variable for censoring
-dta$censored <- ave(dta$D, dta$id, FUN = function(x){
+dta$censored = ave(dta$D, dta$id, FUN = function(x){
   ifelse(cumsum(x)==rep(0, length(x)), c(rep(0, length(x)-1), 1), rep(0, length(x)))})
-dta$censored <-ifelse(dta$T.stop==3 & dta$D==0,0,dta$censored) 
+dta$censored = ifelse(dta$T.stop==3 & dta$D==0,0,dta$censored) 
 
 # Fit pooled logistic regressions with censoring as outcome:
-cwfit.denum <- glm(censored ~ as.factor(T.start) + A + X + L1 + L2, 
+cwfit.denum = glm(censored ~ as.factor(T.start) + A + X + L1 + L2, 
                    family=binomial, data=dta)
 
 # Predict individual censoring probabilities over time:
-cprob.denum <- predict(cwfit.denum, dta, type="response")
+cprob.denum = predict(cwfit.denum, dta, type="response")
 
 # Calculate IPCW's:
-dta$ipcw <- 1/(1-cprob.denum)
-dta$ipcw <- ave(dta$ipcw, dta$id, FUN = cumprod)
+dta$ipcw = 1/(1-cprob.denum)
+dta$ipcw = ave(dta$ipcw, dta$id, FUN = cumprod)
 
 #combined weights
-dta$comb.wt<-pmin(dta$ipcw*dta$iptw,50)
-dta$comb.wt<-pmin(dta$ipcw*dta$iptw,50)
+dta$comb.wt = pmin(dta$ipcw*dta$iptw,50)
+dta$comb.wt = pmin(dta$ipcw*dta$iptw,50)
 
 #Weighted Kaplan-Meier
-km.wt2<-survfit(Surv(T.start,T.stop,D)~A0,data=dta,weights = dta$comb.wt)
+km.wt2 = survfit(Surv(T.start,T.stop,D)~A0,data=dta,weights = dta$comb.wt)
 
 plot(km.wt2, xlab="Time",ylab="Survival probability",
      col=c("red","blue"),lwd=2,conf.int=F,main="")
@@ -160,32 +150,32 @@ summary(km.wt2,times=3)
 ```
 
 5. EXTRA. The analysis in question 4 assumes that censoring only occurs at time 1, 2, or 3. The censoring times can actually be at any time (in this data set). One approach to allowing for this is to extend the analysis in 4 to allow censoring times to occur on a small grid of times, say $0.1,0.2,\ldots,2.9,3.0$. To allow this the first step is to divide each individual's follow-up into smaller time periods according to the grid $0.1,0.2,\ldots,2.9,3.0$, which can be done using the `survSplit` function:
-`dta.split<-survSplit(Surv(T.start,T.stop,D)~.,data=dta,cut=seq(0,3,0.1))`. 
+`dta.split = survSplit(Surv(T.start,T.stop,D)~.,data=dta,cut=seq(0,3,0.1))`. 
 The rest of the analysis then follows as above, except that in the censoring weights model we recommend including a spline term for `T.start` instead of the separate indicator for each time (e.g. `ns(T.start,df=4)`). 
 ```{r}
-dta.split<-survSplit(Surv(T.start,T.stop,D)~.,data=dta,cut=seq(0,3,0.1))
+dta.split = survSplit(Surv(T.start,T.stop,D)~.,data=dta,cut=seq(0,3,0.1))
 
 # Create new event variable for censoring
-dta.split$censored <- ave(dta.split$D, dta.split$id, FUN = function(x){
+dta.split$censored  =  ave(dta.split$D, dta.split$id, FUN = function(x){
   ifelse(cumsum(x)==rep(0, length(x)), c(rep(0, length(x)-1), 1), rep(0, length(x)))})
-dta.split$censored <-ifelse(dta.split$T.stop==3 & dta.split$D==0,0,dta.split$censored) 
+dta.split$censored  = ifelse(dta.split$T.stop==3 & dta.split$D==0,0,dta.split$censored) 
 
 # Fit pooled logistic regressions with censoring as outcome
-cwfit.denum <- glm(censored ~ ns(T.start,df=4) + A + X + L1 + L2, 
+cwfit.denum = glm(censored ~ ns(T.start,df=4) + A + X + L1 + L2, 
                    family=binomial, data=dta.split)
 
 # Predict individual censoring probabilities over time:
-cprob.denum <- predict(cwfit.denum, dta.split, type="response")
+cprob.denum = predict(cwfit.denum, dta.split, type="response")
 
 # Calculate IPCW's
-dta.split$ipcw <- 1/(1-cprob.denum)
-dta.split$ipcw <- ave(dta.split$ipcw, dta.split$id, FUN = cumprod)
+dta.split$ipcw = 1/(1-cprob.denum)
+dta.split$ipcw = ave(dta.split$ipcw, dta.split$id, FUN = cumprod)
 
 #combined weights
-dta.split$comb.wt<-dta.split$ipcw*dta.split$iptw
+dta.split$comb.wt = dta.split$ipcw*dta.split$iptw
 
 #Weighted Kaplan-Meier
-km.wt3<-survfit(Surv(T.start,T.stop,D)~A0,data=dta.split,weights = dta.split$comb.wt)
+km.wt3 = survfit(Surv(T.start,T.stop,D)~A0,data=dta.split,weights = dta.split$comb.wt)
 
 plot(km.wt3, xlab="Time",ylab="Survival probability",
      col=c("red","blue"),lwd=2,conf.int=F,main="")
@@ -208,40 +198,40 @@ c. Repeat (b) for the `clone.0` data, thinking now of the strategy $a_0=a_1=a_2=
 
 ```{r}
 #Create two copies of the data
-clone.1<-dta
-clone.0<-dta
+clone.1 = dta
+clone.0 = dta
 
 #---
 #For clone.1
 
 #cumulative sum of treatment status being A=1
-clone.1$cumsumA<-ave(clone.1$A==1,clone.1$id,FUN=cumsum)
+clone.1$cumsumA = ave(clone.1$A==1,clone.1$id,FUN=cumsum)
 
 #indicator of whether the person has deviated from A=1
-clone.1$switchA<-ifelse(clone.1$cumsumA==clone.1$T.start+1,0,1)
+clone.1$switchA = ifelse(clone.1$cumsumA==clone.1$T.start+1,0,1)
 
 #cumulative indicator of whether the person has deviated from A=1
-clone.1$switchA<-ave(clone.1$switchA,clone.1$id,FUN=cumsum)
+clone.1$switchA = ave(clone.1$switchA,clone.1$id,FUN=cumsum)
 
 #drop if switchA>1 
 #because we are only going to use the rows where switchA=0 or 1 to estimate the weights.
-clone.1<-clone.1[clone.1$switchA<=1,]
+clone.1 = clone.1[clone.1$switchA<=1,]
 
 #---
 #For clone.0
 
 #cumulative sum of treatment status being A=0
-clone.0$cumsumA<-ave(clone.0$A==0,clone.0$id,FUN=cumsum)
+clone.0$cumsumA = ave(clone.0$A==0,clone.0$id,FUN=cumsum)
 
 #indicator of whether the person has deviated from A=0
-clone.0$switchA<-ifelse(clone.0$cumsumA==clone.0$T.start+1,0,1)
+clone.0$switchA = ifelse(clone.0$cumsumA==clone.0$T.start+1,0,1)
 
 #cumulative indicator of whether the person has deviated from A=0
-clone.0$switchA<-ave(clone.0$switchA,clone.0$id,FUN=cumsum)
+clone.0$switchA = ave(clone.0$switchA,clone.0$id,FUN=cumsum)
 
 #drop if cumsum.switchA>1 
 #because we are only going to use the rows where switchA=0 or 1 to estimate the weights.
-clone.0<-clone.0[clone.0$switchA<=1,]
+clone.0 = clone.0[clone.0$switchA<=1,]
 ```
 
 2. In question 1 we have generated a variable `switchA` which is `switchA=0` in rows in which the individual is following the treatment strategy of interest, and which is `switchA=1` in the first row in which the person has deviated from the strategy (rows after this have been excluded). Next we will use this variable to estimate the *artificial censoring weights*. Consider first the data set `clone.1` and use the following steps:
@@ -258,23 +248,23 @@ d. Repeat steps (a)-(c) for the data set `clone.0`.
 #weights models
 
 wt.mod.denom.1=glm(switchA~as.factor(T.start)+X+L1+L2,family="binomial",data=clone.1)
-clone.1$wt.denom<-1-predict(wt.mod.denom.1,type = "response",newdata = clone.1)
+clone.1$wt.denom = 1-predict(wt.mod.denom.1,type = "response",newdata = clone.1)
 
 wt.mod.denom.0=glm(switchA~as.factor(T.start)+X+L1+L2,family="binomial",data=clone.0)
-clone.0$wt.denom<-1-predict(wt.mod.denom.0,type = "response",newdata = clone.0)
+clone.0$wt.denom = 1-predict(wt.mod.denom.0,type = "response",newdata = clone.0)
 
 #drop the row where the switch occurred
 
-clone.1<-clone.1[clone.1$switchA==0,]
-clone.0<-clone.0[clone.0$switchA==0,]
+clone.1 = clone.1[clone.1$switchA==0,]
+clone.0 = clone.0[clone.0$switchA==0,]
 
 #ipcw for the artificial censoring
 
-clone.1$wt<-1/clone.1$wt.denom
-clone.1$wt<-ave(clone.1$wt,clone.1$id,FUN=cumprod)
+clone.1$wt = 1/clone.1$wt.denom
+clone.1$wt = ave(clone.1$wt,clone.1$id,FUN=cumprod)
 
-clone.0$wt<-1/clone.0$wt.denom
-clone.0$wt<-ave(clone.0$wt,clone.0$id,FUN=cumprod)
+clone.0$wt = 1/clone.0$wt.denom
+clone.0$wt = ave(clone.0$wt,clone.0$id,FUN=cumprod)
 ```
 
 3. Finally, we perform the *weighting* step of the cloning-censoring-weighting approach, by performing a weighted analysis using the weights generated in question 2.
@@ -285,8 +275,8 @@ c. Compare the estimated survival curves in a plot and interpret the results.
 d. Obtain the estimated survival probability at time 3 under each treatment strategy, and the corresponding risk difference
 
 ```{r}
-km.1<-survfit(Surv(T.start,T.stop,D)~1,data=clone.1,weights = clone.1$wt)
-km.0<-survfit(Surv(T.start,T.stop,D)~1,data=clone.0,weights = clone.0$wt)
+km.1 = survfit(Surv(T.start,T.stop,D)~1,data=clone.1,weights = clone.1$wt)
+km.0 = survfit(Surv(T.start,T.stop,D)~1,data=clone.0,weights = clone.0$wt)
 
 plot(km.1$time,km.1$surv,type="s",col="blue",lwd=2,
      xlab="Time",ylab="Survival probability",ylim=c(0,1))
@@ -307,75 +297,75 @@ summary(km.0,times=3)$surv
 # which contains the ipcw for standard censoring.
 
 #Create two copies of the data
-clone.1<-dta.split
-clone.0<-dta.split
+clone.1 = dta.split
+clone.0 = dta.split
 
 #---
 #For clone.1
 
 #cumulative sum of treatment status being A=1
-clone.1$cumsumA<-ave(clone.1$A==1,clone.1$id,FUN=cumsum)
+clone.1$cumsumA = ave(clone.1$A==1,clone.1$id,FUN=cumsum)
 
 #indicator of whether the person has deviated from A=1
 clone.1$rownum=ave(rep(1,dim(clone.1)[1]),clone.1$id,FUN=cumsum)
-clone.1$switchA<-ifelse(clone.1$cumsumA==clone.1$rownum,0,1)
+clone.1$switchA = ifelse(clone.1$cumsumA==clone.1$rownum,0,1)
 
 #cumulative indicator of whether the person has deviated from A=1
-clone.1$switchA<-ave(clone.1$switchA,clone.1$id,FUN=cumsum)
+clone.1$switchA = ave(clone.1$switchA,clone.1$id,FUN=cumsum)
 
 #drop if switchA>1 
 #because we are only going to use the rows where switchA=0 or 1 to estimate the weights.
-clone.1<-clone.1[clone.1$switchA<=1,]
+clone.1 = clone.1[clone.1$switchA<=1,]
 
 #---
 #For clone.0
 
 #cumulative sum of treatment status being A=0
-clone.0$cumsumA<-ave(clone.0$A==0,clone.0$id,FUN=cumsum)
+clone.0$cumsumA = ave(clone.0$A==0,clone.0$id,FUN=cumsum)
 
 #indicator of whether the person has deviated from A=0
 clone.0$rownum=ave(rep(1,dim(clone.0)[1]),clone.0$id,FUN=cumsum)
-clone.0$switchA<-ifelse(clone.0$cumsumA==clone.0$rownum,0,1)
+clone.0$switchA = ifelse(clone.0$cumsumA==clone.0$rownum,0,1)
 
 #cumulative indicator of whether the person has deviated from A=0
-clone.0$switchA<-ave(clone.0$switchA,clone.0$id,FUN=cumsum)
+clone.0$switchA = ave(clone.0$switchA,clone.0$id,FUN=cumsum)
 
 #drop if cumsum.switchA>1 
 #because we are only going to use the rows where switchA=0 or 1 to estimate the weights.
-clone.0<-clone.0[clone.0$switchA<=1,]
+clone.0 = clone.0[clone.0$switchA<=1,]
 
 #weights models
 
 wt.mod.denom.1=glm(switchA~as.factor(visit)+X+L1+L2,family="binomial",
                    data=clone.1[clone.1$T.start%in%c(0,1,2),])
-clone.1$wt.denom<-1-predict(wt.mod.denom.1,type = "response",newdata = clone.1)
+clone.1$wt.denom = 1-predict(wt.mod.denom.1,type = "response",newdata = clone.1)
 
 wt.mod.denom.0=glm(switchA~as.factor(visit)+X+L1+L2,family="binomial",
                    data=clone.0[clone.0$T.start%in%c(0,1,2),])
-clone.0$wt.denom<-1-predict(wt.mod.denom.0,type = "response",newdata = clone.0)
+clone.0$wt.denom = 1-predict(wt.mod.denom.0,type = "response",newdata = clone.0)
 
 #drop the row where the switch occurred
 
-clone.1<-clone.1[clone.1$switchA==0,]
-clone.0<-clone.0[clone.0$switchA==0,]
+clone.1 = clone.1[clone.1$switchA==0,]
+clone.0 = clone.0[clone.0$switchA==0,]
 
 #ipcw for the artificial censoring
 
-clone.1$wt<-ifelse(clone.1$T.start%in%c(0,1,2),1/clone.1$wt.denom,1)
-clone.1$wt<-ave(clone.1$wt,clone.1$id,FUN=cumprod)
+clone.1$wt = ifelse(clone.1$T.start%in%c(0,1,2),1/clone.1$wt.denom,1)
+clone.1$wt = ave(clone.1$wt,clone.1$id,FUN=cumprod)
 
-clone.0$wt<-ifelse(clone.0$T.start%in%c(0,1,2),1/clone.0$wt.denom,1)
-clone.0$wt<-ave(clone.0$wt,clone.0$id,FUN=cumprod)
+clone.0$wt = ifelse(clone.0$T.start%in%c(0,1,2),1/clone.0$wt.denom,1)
+clone.0$wt = ave(clone.0$wt,clone.0$id,FUN=cumprod)
 
 #combine the artificial censoring weight with the standard censoring weight
-clone.1$comb.wt<-clone.1$wt*clone.1$ipcw
-clone.0$comb.wt<-clone.0$wt*clone.0$ipcw
+clone.1$comb.wt = clone.1$wt*clone.1$ipcw
+clone.0$comb.wt = clone.0$wt*clone.0$ipcw
 
 #weighted Kaplan-Meier analyses
 #Note that if we use wt instead of comb.wt then the results are 
 # identical to those in question 4, as they should be
-km.1<-survfit(Surv(T.start,T.stop,D)~1,data=clone.1,weights = clone.1$comb.wt)
-km.0<-survfit(Surv(T.start,T.stop,D)~1,data=clone.0,weights = clone.0$comb.wt)
+km.1 = survfit(Surv(T.start,T.stop,D)~1,data=clone.1,weights = clone.1$comb.wt)
+km.0 = survfit(Surv(T.start,T.stop,D)~1,data=clone.0,weights = clone.0$comb.wt)
 
 plot(km.1$time,km.1$surv,type="s",col="blue",lwd=2,
      xlab="Time",ylab="Survival probability",ylim=c(0,1))

@@ -9,32 +9,13 @@ knitr::opts_chunk$set(comment = NA)
 
 In this practical we will use the 'rotterdam' data set, which includes data on individuals who underwent surgery for primary breast cancer between 1978 and 1993, and whose data were recorded in the Rotterdam Tumour Bank. The data include information on treatments received alongside a number of individual characteristics. Individuals were followed up for disease recurrence and death for up to a maximum of 19.3 years. This data set is available as part of the 'survival' package in R, and it has been widely used to illustrate survival analysis methods [e.g. see Royston P, Altman D. External validation of a Cox prognostic model: principles and methods. BMC Medical Research Methodology 2013, 13:33]. 
 
-We have provided a slightly modified version of the data set (rotterdam\_pract.RData) in which individual follow-up is recorded in years instead of days, and where we have applied censoring at 10 years. We have also created an additional variable 'enodes' which is a transformation of the nodes variable - this transformation has been used in several previous analyses of these data. Some individuals in the original data set have been excluded, as they had recorded death times after they were censored for recurrence, resulting in a final sample size of 2939 individuals.
+We have provided a slightly modified version of the Rotterdam data set in which individual follow-up is recorded in years instead of days, and where we have applied censoring at 10 years. We have also created an additional variable 'enodes' which is a transformation of the nodes variable - this transformation has been used in several previous analyses of these data. Some individuals in the original data set have been excluded, as they had recorded death times after they were censored for recurrence, resulting in a final sample size of 2939 individuals.
 
-The variables in the data are listed in the table below. 
-
-## Variable Summary {-}
-
-- pid => Patient identifier
-- age =>Age at surgery
-- meno => Menopausal status. 0=premenopausal, 1=postmenopausal
-- size => Tumour size: categorical with levels $\leq 20$mm, $20-50$mm, $>50$mm
-- grade => Differentiation grade: categorical with levels 2 and 3
-- enodes => Number of positive lymph nodes, transformed as $\exp(-0.12\times nodes)$
-- pgr => Progesterone receptors (fmol/l)
-- er => Estrogen receptors (fmol/l)
-- chemo =>  Chemotherapy: 0=no, 1=yes
-- hormon =>  Hormonal treatment: 0=no, 1=yes
-- rtime => Time (years) to recurrence or last follow-up
-- recur => Indicator of recurrence: 0=no recurrence, 1=recurrence
-- dtime => Time (years) to death or last follow-up
-- death => Indicator of death: 0=alive, 1=dead
-- rdtime => Time (years) to the earliest of death, recurrence or last follow-up
-- rd => Status at rdtime: 0=alive, 1=recurrence, 2=death without recurrence
+![](img/dta_vars.png)
 
 ## Aims {-}
 
-The aim is to estimate the effect of hormone therapy use on survival up to 10 years. More specifically we will estimate the population average (marginal) survival curves if everyone had received hormone therapy (hormon=1) and if everyone had not received hormone therapy (hormon=0). This will be done using the IPTW approach and the standardisation (g-formula) approach.
+The aim is to estimate the effect of hormone therapy use on survival up to 10 years. More specifically we will estimate the population average (marginal) survival curves if everyone had received hormone therapy (`hormon = 1`) and if everyone had not received hormone therapy (`hormon = 0`). This will be done using the IPTW approach and the standardisation (g-formula) approach.
 
 ## Load data and packages {-}
 
@@ -44,7 +25,7 @@ library(adjustedCurves)
 library(riskRegression)
 
 dta = readRDS(file = "data/dta.rds")
-dta$hormon<-as.factor(dta$hormon)
+dta$hormon = as.factor(dta$hormon)
 ```
 
 ## Simple analyses {-}
@@ -52,7 +33,7 @@ dta$hormon<-as.factor(dta$hormon)
 1. Obtain and plot Kaplan-Meier estimates of the survival curves for people who did and did not receive hormone therapy. Which group had better survival?
 
 ```{r}
-km<-survfit(Surv(dtime,death)~hormon,data=dta)
+km = survfit(Surv(dtime,death)~hormon,data=dta)
 
 plot(km, xlab="Time (years)",ylab="Survival probability",
      col=c("red","blue"),lwd=2,conf.int=T,main="")
@@ -63,10 +44,10 @@ legend(x="bottomleft",c("Treatment: No","Treatment: Yes"),
 2. Using `coxph`, fit the following Cox regression models: (a) an unadjusted model including 'hormon' only, (b) an adjusted model including 'hormon' and the following potential confounders: age, meno, size, grade, enodes, pgr, er, chemo. Compare the estimated hazard ratios for 'hormon' in the unadjusted and adjusted models.
 
 ```{r}
-cox.unadj<-coxph(Surv(dtime,death)~hormon,data=dta)
+cox.unadj = coxph(Surv(dtime,death)~hormon,data=dta)
 summary(cox.unadj)
 
-cox.adj<-coxph(Surv(dtime,death)~hormon+age+meno+size+as.factor(grade)+enodes+
+cox.adj = coxph(Surv(dtime,death)~hormon+age+meno+size+as.factor(grade)+enodes+
                  pgr+er+chemo,data=dta)
 summary(cox.adj)
 ```
@@ -84,15 +65,15 @@ Take a look at the distribution of the weights.
   
 ```{r}
 #Fit the model for treatment
-mod.treat<-glm(hormon~age+meno+size+as.factor(grade)+enodes+pgr+er+chemo,
+mod.treat = glm(hormon~age+meno+size+as.factor(grade)+enodes+pgr+er+chemo,
                data=dta,family="binomial")
 summary(mod.treat)
 
 #predicted probability of treatment from the model for each individual
-pred.treat<-predict(mod.treat,data=dta,type="response")
+pred.treat = predict(mod.treat,data=dta,type="response")
 
 #Obtain the weight for each person
-dta$wt<-(dta$hormon==1)/pred.treat+(dta$hormon==0)/(1-pred.treat)
+dta$wt = (dta$hormon==1)/pred.treat+(dta$hormon==0)/(1-pred.treat)
 
 #take a look at the distribution of the weights
 hist(dta$wt,breaks=50)
@@ -103,7 +84,7 @@ hist(dta$wt,breaks=50)
 ```{r}
 #Weighted Kaplan-Meier analysis
 
-km.wt<-survfit(Surv(dtime,death)~hormon,data=dta,weights=dta$wt)
+km.wt = survfit(Surv(dtime,death)~hormon,data=dta,weights=dta$wt)
 
 #plot the estimated marginal survival curves
 plot(km.wt, xlab="Time (years)",ylab="Survival probability",
@@ -117,15 +98,15 @@ legend(x="bottomleft",c("Treatment: No","Treatment: Yes"),
 ```{r}
 #Using Weighted Cox regression
 
-cox.wt<-coxph(Surv(dtime,death)~hormon,data=dta,weights=dta$wt)
+cox.wt = coxph(Surv(dtime,death)~hormon,data=dta,weights=dta$wt)
 summary(cox.wt)
 
 #plot estimated marginal survival curves
 # censor = F means: include only event time points
-surv.1<-survfit(cox.wt,newdata=data.frame(hormon=factor(1)),censor = F)$surv
-surv.0<-survfit(cox.wt,newdata=data.frame(hormon=factor(0)),censor = F)$surv
+surv.1 = survfit(cox.wt,newdata=data.frame(hormon=factor(1)),censor = F)$surv
+surv.0 = survfit(cox.wt,newdata=data.frame(hormon=factor(0)),censor = F)$surv
 
-times<-sort(unique(dta$dtime[dta$death==1]))
+times = sort(unique(dta$dtime[dta$death==1]))
 plot(times,surv.1,type="s",col="blue",lwd=2,ylim=c(0,1),
      xlab="Time (years)",ylab="Survival probability")
 lines(times,surv.0,type="s",col="red",lwd=2)
@@ -149,9 +130,9 @@ summary(km.wt,times=5)
 #---
 #Using Weighted Cox regression
 
-surv.1.t5<-summary(survfit(cox.wt,newdata=data.frame(hormon=factor(1)),censor = F),times=5)
+surv.1.t5 = summary(survfit(cox.wt,newdata=data.frame(hormon=factor(1)),censor = F),times=5)
 
-surv.0.t5<-summary(survfit(cox.wt,newdata=data.frame(hormon=factor(0)),censor = F),times=5)
+surv.0.t5 = summary(survfit(cox.wt,newdata=data.frame(hormon=factor(0)),censor = F),times=5)
 
 #Risk difference
 (1-surv.1.t5$surv)-(1-surv.0.t5$surv)
@@ -161,7 +142,7 @@ surv.0.t5<-summary(survfit(cox.wt,newdata=data.frame(hormon=factor(0)),censor = 
 
 ```{r}
 #marginal survival curves
-adjsurv.wt <- adjustedsurv(data=dta,variable="hormon",ev_time="dtime",event="death",
+adjsurv.wt  =  adjustedsurv(data=dta,variable="hormon",ev_time="dtime",event="death",
                         method="iptw_km",
                         treatment_model=mod.treat,
                         conf_int=TRUE,
@@ -170,7 +151,7 @@ adjsurv.wt <- adjustedsurv(data=dta,variable="hormon",ev_time="dtime",event="dea
 plot(adjsurv.wt,conf_int=T,custom_colors=c("red","blue"),xlab="Time",legend.title="",ylim=c(0,1))
 
 #survival probabilities at time 5
-adjsurv.wt <- adjustedsurv(data=dta,variable="hormon",ev_time="dtime",event="death",
+adjsurv.wt  =  adjustedsurv(data=dta,variable="hormon",ev_time="dtime",event="death",
                            method="iptw_km",
                            treatment_model=mod.treat,
                            times=5,
@@ -192,40 +173,40 @@ adjsurv.wt$adjsurv
 
 ```{r}
 #create dataset in which treatment is set to 1 for everyone
-dta.1<-dta
-dta.1$hormon<-1
-dta.1$hormon<-as.factor(dta.1$hormon)
+dta.1 = dta
+dta.1$hormon = 1
+dta.1$hormon = as.factor(dta.1$hormon)
 
 #predicted survival probabilities at all observed event times 
 # for each individual under strategy hormon=1
-surv.1<-survfit(cox.adj,newdata=dta.1,censor = F)
+surv.1 = survfit(cox.adj,newdata=dta.1,censor = F)
 
 #mean survival probability at all times
 #averaging over all individuals under strategy hormon=1
-survmean.1<-rowMeans(surv.1$surv)
+survmean.1 = rowMeans(surv.1$surv)
 ```
 
 3. Repeat question 2 but setting `hormon=0` for everyone.
 
 ```{r}
 #create dataset in which treatment is set to 0 for everyone
-dta.0<-dta
-dta.0$hormon<-0
-dta.0$hormon<-as.factor(dta.0$hormon)
+dta.0 = dta
+dta.0$hormon = 0
+dta.0$hormon = as.factor(dta.0$hormon)
 
 #predicted survival probabilities at all observed event times 
 # for each individual under strategy hormon=0
-surv.0<-survfit(cox.adj,newdata=dta.0,censor = F)
+surv.0 = survfit(cox.adj,newdata=dta.0,censor = F)
 
 #mean survival probability at all times
 #averaging over all individuals under strategy hormon=0
-survmean.0<-rowMeans(surv.0$surv)
+survmean.0 = rowMeans(surv.0$surv)
 ```
 
 4. Plot the marginal survival curves using your results from questions 2 and 3. 
 
 ```{r}
-times<-surv.1$time
+times = surv.1$time
 plot(times,survmean.1,type="s",col="blue",lwd=2,ylim=c(0,1),
      xlab="Time (years)",ylab="Survival probability")
 lines(times,survmean.0,type="s",col="red",lwd=2)
@@ -238,18 +219,18 @@ legend(x="bottomleft",c("Treatment: No","Treatment: Yes"),
 
 ```{r}
 #predicted survival probabilities at time 5 for each individual under strategy hormon=1
-surv.1.t5<-summary(surv.1,times=5)
+surv.1.t5 = summary(surv.1,times=5)
 
 #predicted survival probabilities at time 5 for each individual under strategy hormon=0
-surv.0.t5<-summary(surv.0,times=5)
+surv.0.t5 = summary(surv.0,times=5)
 
 #mean survival probability at time 5, averaging over all individuals
 #under strategy hormon=1 and under strategy hormon=0
-survmean.1.t5<-mean(surv.1.t5$surv)
-survmean.0.t5<-mean(surv.0.t5$surv)
+survmean.1.t5 = mean(surv.1.t5$surv)
+survmean.0.t5 = mean(surv.0.t5$surv)
 
 #Risk difference at time 5
-rd.t5<-survmean.1.t5-survmean.0.t5
+rd.t5 = survmean.1.t5-survmean.0.t5
 ```
 
 6. Use the `adjustedsurv` function in the 'adjustedCurves' package to obtain the marginal survival curves and the marginal risks and risk differences. Use the option `method=direct`. 
@@ -258,11 +239,11 @@ rd.t5<-survmean.1.t5-survmean.0.t5
 #marginal survival curves
 
 #We need to use the 'x=TRUE' option in coxph
-cox.adj<-coxph(Surv(dtime,death)~hormon+age+meno+size+as.factor(grade)+enodes+
+cox.adj = coxph(Surv(dtime,death)~hormon+age+meno+size+as.factor(grade)+enodes+
                  pgr+er+chemo,data=dta,x=TRUE)
 
 
-adjsurv.gform <- adjustedsurv(data=dta,variable="hormon",ev_time="dtime",event="death",
+adjsurv.gform  =  adjustedsurv(data=dta,variable="hormon",ev_time="dtime",event="death",
                         method="direct",
                         outcome_model=cox.adj,
                         conf_int=TRUE,
@@ -273,7 +254,7 @@ plot(adjsurv.gform,conf_int=T,custom_colors=c("red","blue"),
 
 #survival and risk difference probabilities at time 5
 
-adjsurv <- adjustedsurv(data=dta,variable="hormon",ev_time="dtime",event="death",
+adjsurv  =  adjustedsurv(data=dta,variable="hormon",ev_time="dtime",event="death",
                         method="direct",
                         outcome_model=cox.adj,
                         conf_int=TRUE,
