@@ -2,13 +2,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.3.353">
+<meta name="generator" content="quarto-1.5.57">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="description" content="Various code examples and methodologies for survival analysis">
 
-<title>Material on Survival Analyses - Weighting and standardisation for point treatments</title>
+<title>Weighting and standardisation for point treatments – Material on Survival Analyses</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -23,7 +23,7 @@ ul.task-list li input[type="checkbox"] {
 }
 /* CSS for syntax highlighting */
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -34,7 +34,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
   { counter-reset: source-line 0; }
@@ -82,7 +82,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   "collapse-after": 3,
   "panel-placement": "start",
   "type": "textbox",
-  "limit": 20,
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
   "language": {
     "search-no-results-text": "No results",
     "search-matching-documents-text": "matching documents",
@@ -91,13 +97,42 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-more-match-text": "more match in this document",
     "search-more-matches-text": "more matches in this document",
     "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
     "search-detached-cancel-button-title": "Cancel",
-    "search-submit-button-title": "Submit"
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
   }
 }</script>
 
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -107,12 +142,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <header id="quarto-header" class="headroom fixed-top">
   <nav class="quarto-secondary-nav">
     <div class="container-fluid d-flex">
-      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./point_trts.html">Weighting and standardisation for point treatments</a></li></ol></nav>
-      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
-      </a>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./point_trts.html">Weighting and standardisation for point treatments</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
       </button>
@@ -122,7 +157,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation floating overflow-auto">
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
       <a href="./">Material on Survival Analyses</a> 
@@ -213,7 +248,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </ul>
     </div>
 </nav>
-<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active">
@@ -239,7 +274,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<div class="quarto-title-meta">
+<div class="quarto-title-meta column-body">
 
     
   
@@ -247,7 +282,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </div>
   
 
+
 </header>
+
 
 <section id="data" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="data">Data</h2>
@@ -261,7 +298,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="load-data-and-packages" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="load-data-and-packages">Load data and packages</h2>
-<div class="cell" data-result="false" data-hash="point_trts_cache/html/unnamed-chunk-1_f31c22615997a03cde3b74611fc758ed">
+<div class="cell" data-result="false">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survival)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(adjustedCurves)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(riskRegression)</span>
@@ -275,7 +312,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <ol type="1">
 <li>Obtain and plot Kaplan-Meier estimates of the survival curves for people who did and did not receive hormone therapy. Which group had better survival?</li>
 </ol>
-<div class="cell" data-hash="point_trts_cache/html/unnamed-chunk-2_e2299fb6e9b9330bd285930adeccd550">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>km <span class="ot">=</span> <span class="fu">survfit</span>(<span class="fu">Surv</span>(dtime,death)<span class="sc">~</span>hormon,<span class="at">data=</span>dta)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(km, <span class="at">xlab=</span><span class="st">"Time (years)"</span>,<span class="at">ylab=</span><span class="st">"Survival probability"</span>,</span>
@@ -283,13 +320,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="at">x=</span><span class="st">"bottomleft"</span>,<span class="fu">c</span>(<span class="st">"Treatment: No"</span>,<span class="st">"Treatment: Yes"</span>),</span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">col=</span><span class="fu">c</span>(<span class="st">"red"</span>,<span class="st">"blue"</span>),<span class="at">lty=</span><span class="dv">1</span>,<span class="at">lwd=</span><span class="dv">2</span>,<span class="at">bty=</span><span class="st">"n"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="point_trts_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="point_trts_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <ol start="2" type="1">
 <li>Using <code>coxph</code>, fit the following Cox regression models: (a) an unadjusted model including ‘hormon’ only, (b) an adjusted model including ‘hormon’ and the following potential confounders: age, meno, size, grade, enodes, pgr, er, chemo. Compare the estimated hazard ratios for ‘hormon’ in the unadjusted and adjusted models.</li>
 </ol>
-<div class="cell" data-hash="point_trts_cache/html/unnamed-chunk-3_1bf46af7a7a64292b359446b5369cc81">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>cox.unadj <span class="ot">=</span> <span class="fu">coxph</span>(<span class="fu">Surv</span>(dtime,death)<span class="sc">~</span>hormon,<span class="at">data=</span>dta)</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(cox.unadj)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -365,7 +406,7 @@ Score (logrank) test = 743.1  on 10 df,   p=&lt;2e-16</code></pre>
 W=\frac{A}{\mathbb{P}(A=1|L)}+\frac{(1-A)}{\mathbb{P}(A=0|L)}.
 \]</span> Take a look at the distribution of the weights.</li>
 </ul>
-<div class="cell" data-hash="point_trts_cache/html/unnamed-chunk-4_f2f4d0ad80bf6fe3339186d57037092d">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Fit the model for treatment</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>mod.treat <span class="ot">=</span> <span class="fu">glm</span>(hormon<span class="sc">~</span>age<span class="sc">+</span>meno<span class="sc">+</span>size<span class="sc">+</span><span class="fu">as.factor</span>(grade)<span class="sc">+</span>enodes<span class="sc">+</span>pgr<span class="sc">+</span>er<span class="sc">+</span>chemo,</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">data=</span>dta,<span class="at">family=</span><span class="st">"binomial"</span>)</span>
@@ -375,10 +416,6 @@ W=\frac{A}{\mathbb{P}(A=1|L)}+\frac{(1-A)}{\mathbb{P}(A=0|L)}.
 Call:
 glm(formula = hormon ~ age + meno + size + as.factor(grade) + 
     enodes + pgr + er + chemo, family = "binomial", data = dta)
-
-Deviance Residuals: 
-    Min       1Q   Median       3Q      Max  
--1.4883  -0.4587  -0.3185  -0.1828   3.0234  
 
 Coefficients:
                     Estimate Std. Error z value Pr(&gt;|z|)    
@@ -412,13 +449,17 @@ Number of Fisher Scoring iterations: 6</code></pre>
 <span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co">#take a look at the distribution of the weights</span></span>
 <span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(dta<span class="sc">$</span>wt,<span class="at">breaks=</span><span class="dv">50</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="point_trts_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="point_trts_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <ol start="2" type="1">
 <li>Obtain estimates of the marginal survival curves under the two treatment strategies using a weighted Kaplan-Meier analysis (using <code>survfit</code> with the weights option), and plot these.</li>
 </ol>
-<div class="cell" data-hash="point_trts_cache/html/unnamed-chunk-5_7146852f032d85706c6a893beb17c2f4">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Weighted Kaplan-Meier analysis</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>km.wt <span class="ot">=</span> <span class="fu">survfit</span>(<span class="fu">Surv</span>(dtime,death)<span class="sc">~</span>hormon,<span class="at">data=</span>dta,<span class="at">weights=</span>dta<span class="sc">$</span>wt)</span>
@@ -429,13 +470,17 @@ Number of Fisher Scoring iterations: 6</code></pre>
 <span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="at">x=</span><span class="st">"bottomleft"</span>,<span class="fu">c</span>(<span class="st">"Treatment: No"</span>,<span class="st">"Treatment: Yes"</span>),</span>
 <span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">col=</span><span class="fu">c</span>(<span class="st">"red"</span>,<span class="st">"blue"</span>),<span class="at">lty=</span><span class="dv">1</span>,<span class="at">lwd=</span><span class="dv">2</span>,<span class="at">bty=</span><span class="st">"n"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="point_trts_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="point_trts_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <ol start="3" type="1">
 <li>Fit a weighted Cox regression (using <code>coxph</code> with the weights option) including ‘hormon’ only in the model. Use the results from the model to obtain estimates of the marginal survival curves under the two treatment strategies (using <code>survfit</code>), and plot your estimated curves.</li>
 </ol>
-<div class="cell" data-hash="point_trts_cache/html/unnamed-chunk-6_412464448fab5b0d8fec3afa5a954027">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Using Weighted Cox regression</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>cox.wt <span class="ot">=</span> <span class="fu">coxph</span>(<span class="fu">Surv</span>(dtime,death)<span class="sc">~</span>hormon,<span class="at">data=</span>dta,<span class="at">weights=</span>dta<span class="sc">$</span>wt)</span>
@@ -474,13 +519,17 @@ Score (logrank) test = 72.38  on 1 df,   p=&lt;2e-16,   Robust = 5.7  p=0.02
 <span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="at">x=</span><span class="st">"bottomleft"</span>,<span class="fu">c</span>(<span class="st">"Treatment: No"</span>,<span class="st">"Treatment: Yes"</span>),</span>
 <span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">col=</span><span class="fu">c</span>(<span class="st">"red"</span>,<span class="st">"blue"</span>),<span class="at">lwd=</span><span class="dv">2</span>,<span class="at">bty=</span><span class="st">"n"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="point_trts_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="point_trts_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <ol start="4" type="1">
 <li>Based on your Kaplan-Meier and Cox regression analyses in questions 2 and 3, obtain estimates of the marginal risk of death up to time 5 under the two treatment strategies, and the corresponding risk difference.</li>
 </ol>
-<div class="cell" data-hash="point_trts_cache/html/unnamed-chunk-7_3c7b3ef9cbbd031214a0f9c8fceb15f3">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">#---</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co">#Using Weighted Kaplan-Meier</span></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -525,7 +574,7 @@ upper 95% CI
 <ol start="5" type="1">
 <li>EXTRA: Use the <code>adjustedsurv</code> function in the <code>adjustedCurves</code> package to obtain the marginal survival curves and the marginal risks and risk differences at time 5. Use the option <code>method=iptw_km</code>.</li>
 </ol>
-<div class="cell" data-hash="point_trts_cache/html/unnamed-chunk-8_6c82373c3eb3469e509e46679c9e1d84">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">#marginal survival curves</span></span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>adjsurv.wt  <span class="ot">=</span>  <span class="fu">adjustedsurv</span>(<span class="at">data=</span>dta,<span class="at">variable=</span><span class="st">"hormon"</span>,<span class="at">ev_time=</span><span class="st">"dtime"</span>,<span class="at">event=</span><span class="st">"death"</span>,</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>                        <span class="at">method=</span><span class="st">"iptw_km"</span>,</span>
@@ -538,7 +587,11 @@ upper 95% CI
 <pre><code>Loading required namespace: pammtools</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="point_trts_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="point_trts_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 <div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co">#survival probabilities at time 5</span></span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>adjsurv.wt  <span class="ot">=</span>  <span class="fu">adjustedsurv</span>(<span class="at">data=</span>dta,<span class="at">variable=</span><span class="st">"hormon"</span>,<span class="at">ev_time=</span><span class="st">"dtime"</span>,<span class="at">event=</span><span class="st">"death"</span>,</span>
@@ -550,9 +603,7 @@ upper 95% CI
 <span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>adjsurv.wt<span class="sc">$</span>adjsurv</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>  time      surv group          se ci_lower  ci_upper
-1    5 0.7311687     0 0.008781155 0.713958 0.7483795
-2    5 0.7965402     1 0.045380018 0.707597 0.8854834</code></pre>
+<pre><code>NULL</code></pre>
 </div>
 </div>
 </section>
@@ -567,7 +618,7 @@ upper 95% CI
 <li>Using the Cox model from question 1, use <code>survfit</code> to obtain the estimated survival probability for each individual in <code>dta.1</code> at all observed event or censoring times times. This gives a matrix of estimated survival probabilities for each individual at each time under the treatment strategy of setting <code>hormon=1</code>.</li>
 <li>Calculate the average survival probability at each time, i.e.&nbsp;averaging over individuals at each time.</li>
 </ul>
-<div class="cell" data-hash="point_trts_cache/html/unnamed-chunk-9_87d98a1abcded14cb456d5a7111559e5">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co">#create dataset in which treatment is set to 1 for everyone</span></span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>dta<span class="fl">.1</span> <span class="ot">=</span> dta</span>
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>dta<span class="fl">.1</span><span class="sc">$</span>hormon <span class="ot">=</span> <span class="dv">1</span></span>
@@ -584,7 +635,7 @@ upper 95% CI
 <ol start="3" type="1">
 <li>Repeat question 2 but setting <code>hormon=0</code> for everyone.</li>
 </ol>
-<div class="cell" data-hash="point_trts_cache/html/unnamed-chunk-10_b8b06ef7c17243eca11f43136ba75f40">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co">#create dataset in which treatment is set to 0 for everyone</span></span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>dta<span class="fl">.0</span> <span class="ot">=</span> dta</span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>dta<span class="fl">.0</span><span class="sc">$</span>hormon <span class="ot">=</span> <span class="dv">0</span></span>
@@ -601,7 +652,7 @@ upper 95% CI
 <ol start="4" type="1">
 <li>Plot the marginal survival curves using your results from questions 2 and 3.</li>
 </ol>
-<div class="cell" data-hash="point_trts_cache/html/unnamed-chunk-11_e1d7eb4a877cfeb3775c7d8ca696ecf9">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>times <span class="ot">=</span> surv<span class="fl">.1</span><span class="sc">$</span>time</span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(times,survmean<span class="fl">.1</span>,<span class="at">type=</span><span class="st">"s"</span>,<span class="at">col=</span><span class="st">"blue"</span>,<span class="at">lwd=</span><span class="dv">2</span>,<span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>),</span>
 <span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab=</span><span class="st">"Time (years)"</span>,<span class="at">ylab=</span><span class="st">"Survival probability"</span>)</span>
@@ -609,13 +660,17 @@ upper 95% CI
 <span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="at">x=</span><span class="st">"bottomleft"</span>,<span class="fu">c</span>(<span class="st">"Treatment: No"</span>,<span class="st">"Treatment: Yes"</span>),</span>
 <span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">col=</span><span class="fu">c</span>(<span class="st">"red"</span>,<span class="st">"blue"</span>),<span class="at">lwd=</span><span class="dv">2</span>,<span class="at">bty=</span><span class="st">"n"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="point_trts_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="point_trts_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <ol start="5" type="1">
 <li>Obtain estimates of the marginal risk of death up to time 5 under the two treatment strategies, and the corresponding risk difference.</li>
 </ol>
-<div class="cell" data-hash="point_trts_cache/html/unnamed-chunk-12_becfa66caecdd1ce65cb6e2977351362">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co">#predicted survival probabilities at time 5 for each individual under strategy hormon=1</span></span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>surv.<span class="fl">1.</span>t5 <span class="ot">=</span> <span class="fu">summary</span>(surv<span class="fl">.1</span>,<span class="at">times=</span><span class="dv">5</span>)</span>
 <span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -633,7 +688,7 @@ upper 95% CI
 <ol start="6" type="1">
 <li>Use the <code>adjustedsurv</code> function in the ‘adjustedCurves’ package to obtain the marginal survival curves and the marginal risks and risk differences. Use the option <code>method=direct</code>.</li>
 </ol>
-<div class="cell" data-hash="point_trts_cache/html/unnamed-chunk-13_a4c007bbd93947a6c0dc70a20c0b5dbe">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co">#marginal survival curves</span></span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="co">#We need to use the 'x=TRUE' option in coxph</span></span>
@@ -650,7 +705,11 @@ upper 95% CI
 <span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(adjsurv.gform,<span class="at">conf_int=</span>T,<span class="at">custom_colors=</span><span class="fu">c</span>(<span class="st">"red"</span>,<span class="st">"blue"</span>),</span>
 <span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab=</span><span class="st">"Time (years)"</span>,<span class="at">legend.title=</span><span class="st">""</span>,<span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="point_trts_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="point_trts_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 <div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co">#survival and risk difference probabilities at time 5</span></span>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -712,18 +771,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
     return false;
   }
-  const clipboard = new window.ClipboardJS('.code-copy-button', {
-    text: function(trigger) {
-      const codeEl = trigger.previousElementSibling.cloneNode(true);
-      for (const childEl of codeEl.children) {
-        if (isCodeAnnotation(childEl)) {
-          childEl.remove();
-        }
-      }
-      return codeEl.innerText;
-    }
-  });
-  clipboard.on('success', function(e) {
+  const onCopySuccess = function(e) {
     // button target
     const button = e.trigger;
     // don't keep focus
@@ -755,11 +803,50 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }, 1000);
     // clear code selection
     e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
   });
-  function tippyHover(el, contentFn) {
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
     const config = {
       allowHTML: true,
-      content: contentFn,
       maxWidth: 500,
       delay: 100,
       arrow: false,
@@ -769,8 +856,17 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       interactive: true,
       interactiveBorder: 10,
       theme: 'quarto',
-      placement: 'bottom-start'
+      placement: 'bottom-start',
     };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
     window.tippy(el, config); 
   }
   const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
@@ -782,7 +878,130 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       try { href = new URL(href).hash; } catch {}
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
-      return note.innerHTML;
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
     });
   }
       let selectedAnnoteEl;
@@ -826,6 +1045,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
             }
             div.style.top = top - 2 + "px";
             div.style.height = height + 4 + "px";
+            div.style.left = 0;
             let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
             if (gutterDiv === null) {
               gutterDiv = window.document.createElement("div");
@@ -851,6 +1071,32 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         });
         selectedAnnoteEl = undefined;
       };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
       // Attach click handler to the DT
       const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
       for (const annoteDlNode of annoteDls) {
@@ -912,17 +1158,18 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation column-body">
   <div class="nav-page nav-page-previous">
-      <a href="./ncc.html" class="pagination-link">
+      <a href="./ncc.html" class="pagination-link" aria-label="Case-control studies">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Case-control studies</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./time_dep_trts.html" class="pagination-link">
+      <a href="./time_dep_trts.html" class="pagination-link" aria-label="Censoring and time-dependent treatment strategies">
         <span class="nav-page-text">Censoring and time-dependent treatment strategies</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
 </div> <!-- /content -->
+
 
 
 

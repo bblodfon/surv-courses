@@ -2,13 +2,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.3.353">
+<meta name="generator" content="quarto-1.5.57">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="description" content="Various code examples and methodologies for survival analysis">
 
-<title>Material on Survival Analyses - Non-parametric estimators</title>
+<title>Non-parametric estimators – Material on Survival Analyses</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -23,7 +23,7 @@ ul.task-list li input[type="checkbox"] {
 }
 /* CSS for syntax highlighting */
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -34,7 +34,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
   { counter-reset: source-line 0; }
@@ -82,7 +82,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   "collapse-after": 3,
   "panel-placement": "start",
   "type": "textbox",
-  "limit": 20,
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
   "language": {
     "search-no-results-text": "No results",
     "search-matching-documents-text": "matching documents",
@@ -91,13 +97,42 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-more-match-text": "more match in this document",
     "search-more-matches-text": "more matches in this document",
     "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
     "search-detached-cancel-button-title": "Cancel",
-    "search-submit-button-title": "Submit"
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
   }
 }</script>
 
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -107,12 +142,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <header id="quarto-header" class="headroom fixed-top">
   <nav class="quarto-secondary-nav">
     <div class="container-fluid d-flex">
-      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./na_km_logrank.html">Non-parametric estimators</a></li></ol></nav>
-      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
-      </a>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./na_km_logrank.html">Non-parametric estimators</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
       </button>
@@ -122,7 +157,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation floating overflow-auto">
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
       <a href="./">Material on Survival Analyses</a> 
@@ -213,7 +248,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </ul>
     </div>
 </nav>
-<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active">
@@ -235,7 +270,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<div class="quarto-title-meta">
+<div class="quarto-title-meta column-body">
 
     
   
@@ -243,19 +278,33 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </div>
   
 
+
 </header>
+
 
 <section id="nelson-aalen-estimator" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="nelson-aalen-estimator">Nelson-Aalen estimator</h2>
-<div class="cell" data-hash="na_km_logrank_cache/html/libs_0fcf63923a96142bce8af34406dea6e1">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survival)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+✔ lubridate 1.9.3     ✔ tidyr     1.3.1
+✔ purrr     1.0.2     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+</div>
 </div>
 <p>In the period 1962-77 a total of <span class="math inline">\(205\)</span> patients with <em>malignant melanoma</em> (cancer of the skin) were operated at Odense University hospital in Denmark. A number of covariates were recorded at operation, and the patients were followed up until death or censoring at the <strong>end of the study at December 31, 1977</strong>. We will study death from malignant melanoma considering death from other causes as censorings. (Source: Andersen, Borgan, Gill &amp; Keiding, Springer, 1993.)</p>
 <p>You may read the data into R by the command:</p>
-<div class="cell" data-hash="na_km_logrank_cache/html/unnamed-chunk-1_c49c51a50a8f16dc700c5d8315a7fca9">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>melanoma <span class="ot">=</span> <span class="fu">read.table</span>(<span class="st">"https://www.med.uio.no/imb/english/research/centres/ocbe/courses/imb9335/melanoma.txt"</span>,<span class="at">header=</span>T) <span class="sc">%&gt;%</span> </span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>melanoma <span class="ot">=</span> <span class="fu">read.table</span>(<span class="st">"https://www.med.uio.no/imb/english/research/centres/ocbe/courses/imb9335/melanoma.txt"</span>,<span class="at">header=</span>T) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>The data are organized with one line for each of the 205 patients, and with the following variables in the seven columns:</p>
 <ul>
@@ -268,19 +317,27 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>grthick: grouped tumor thickness [1: 0-1 mm (i.e.&nbsp;below 2 mm), 2: 2-4 mm (i.e.&nbsp;at least 2 mm, but below 5 mm) , 3: 5+ mm (i.e.&nbsp;5 mm or more)]</li>
 </ul>
 <p>The following commands provide a <strong>Nelson-Aalen plot</strong> for female melanoma patients. (The survival-library has to be loaded.)</p>
-<div class="cell" data-hash="na_km_logrank_cache/html/unnamed-chunk-2_3d303e7e52e1ab942788541a865b37b1">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>surv.f <span class="ot">=</span> survival<span class="sc">::</span><span class="fu">survfit</span>(<span class="fu">Surv</span>(lifetime,status<span class="sc">==</span><span class="dv">1</span>) <span class="sc">~</span> <span class="dv">1</span>, <span class="at">data =</span> melanoma, </span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">subset =</span> (sex <span class="sc">==</span> <span class="dv">1</span>), <span class="at">ctype =</span> <span class="dv">1</span>) <span class="co"># ctype = 1 means NA estimator</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>surv.m <span class="ot">=</span> survival<span class="sc">::</span><span class="fu">survfit</span>(<span class="fu">Surv</span>(lifetime,status<span class="sc">==</span><span class="dv">1</span>) <span class="sc">~</span> <span class="dv">1</span>, <span class="at">data =</span> melanoma, </span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">subset =</span> (sex <span class="sc">==</span> <span class="dv">2</span>), <span class="at">ctype =</span> <span class="dv">1</span>)</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(surv.f, <span class="at">fun=</span><span class="st">"cumhaz"</span>, <span class="at">mark.time=</span><span class="cn">FALSE</span>, <span class="at">conf.type=</span><span class="st">"plain"</span>, <span class="at">xlim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">10</span>), <span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.80</span>), <span class="at">main=</span><span class="st">"Females"</span>, <span class="at">xlab=</span><span class="st">"Years since operation"</span>, <span class="at">ylab=</span><span class="st">"Cumulative hazard"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>surv.f <span class="ot">=</span> survival<span class="sc">::</span><span class="fu">survfit</span>(<span class="fu">Surv</span>(lifetime,status<span class="sc">==</span><span class="dv">1</span>) <span class="sc">~</span> <span class="dv">1</span>, <span class="at">data =</span> melanoma, </span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">subset =</span> (sex <span class="sc">==</span> <span class="dv">1</span>), <span class="at">ctype =</span> <span class="dv">1</span>) <span class="co"># ctype = 1 means NA estimator</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>surv.m <span class="ot">=</span> survival<span class="sc">::</span><span class="fu">survfit</span>(<span class="fu">Surv</span>(lifetime,status<span class="sc">==</span><span class="dv">1</span>) <span class="sc">~</span> <span class="dv">1</span>, <span class="at">data =</span> melanoma, </span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">subset =</span> (sex <span class="sc">==</span> <span class="dv">2</span>), <span class="at">ctype =</span> <span class="dv">1</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(surv.f, <span class="at">fun=</span><span class="st">"cumhaz"</span>, <span class="at">mark.time=</span><span class="cn">FALSE</span>, <span class="at">conf.type=</span><span class="st">"plain"</span>, <span class="at">xlim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">10</span>), <span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.80</span>), <span class="at">main=</span><span class="st">"Females"</span>, <span class="at">xlab=</span><span class="st">"Years since operation"</span>, <span class="at">ylab=</span><span class="st">"Cumulative hazard"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="na_km_logrank_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="na_km_logrank_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
 </div>
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(surv.m, <span class="at">fun=</span><span class="st">"cumhaz"</span>, <span class="at">mark.time=</span><span class="cn">FALSE</span>, <span class="at">conf.type=</span><span class="st">"plain"</span>, <span class="at">xlim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">10</span>), <span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.80</span>), <span class="at">main=</span><span class="st">"Males"</span>, <span class="at">xlab=</span><span class="st">"Years since operation"</span>, <span class="at">ylab=</span><span class="st">"Cumulative hazard"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(surv.m, <span class="at">fun=</span><span class="st">"cumhaz"</span>, <span class="at">mark.time=</span><span class="cn">FALSE</span>, <span class="at">conf.type=</span><span class="st">"plain"</span>, <span class="at">xlim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">10</span>), <span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.80</span>), <span class="at">main=</span><span class="st">"Males"</span>, <span class="at">xlab=</span><span class="st">"Years since operation"</span>, <span class="at">ylab=</span><span class="st">"Cumulative hazard"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="na_km_logrank_files/figure-html/unnamed-chunk-2-2.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="na_km_logrank_files/figure-html/unnamed-chunk-2-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <ol type="a">
@@ -288,14 +345,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><p>Make a Nelson-Aalen plot for males and compare with the plot for females.</p></li>
 </ol>
 <p>To plot the Nelson-Aalen estimates for both genders in the same figure, we may give the commands:</p>
-<div class="cell" data-hash="na_km_logrank_cache/html/unnamed-chunk-3_1083d3938f5fa27eb5e526609d140e65">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>surv.sex <span class="ot">=</span> survival<span class="sc">::</span><span class="fu">survfit</span>(<span class="fu">Surv</span>(lifetime,status<span class="sc">==</span><span class="dv">1</span>) <span class="sc">~</span> <span class="fu">strata</span>(sex), <span class="at">data=</span>melanoma, <span class="at">ctype=</span><span class="dv">1</span>)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(surv.sex, <span class="at">fun=</span><span class="st">"cumhaz"</span>, <span class="at">mark.time=</span><span class="cn">FALSE</span>, <span class="at">lty=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, <span class="at">xlim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">10</span>), <span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.80</span>), <span class="at">main=</span><span class="st">"Gender"</span>, <span class="at">xlab=</span><span class="st">"Years since operation"</span>, <span class="at">ylab=</span><span class="st">"Cumulative hazard"</span>)</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topleft"</span>, <span class="fu">c</span>(<span class="st">"Females"</span>,<span class="st">"Males"</span>), <span class="at">lty=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>surv.sex <span class="ot">=</span> survival<span class="sc">::</span><span class="fu">survfit</span>(<span class="fu">Surv</span>(lifetime,status<span class="sc">==</span><span class="dv">1</span>) <span class="sc">~</span> <span class="fu">strata</span>(sex), <span class="at">data=</span>melanoma, <span class="at">ctype=</span><span class="dv">1</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(surv.sex, <span class="at">fun=</span><span class="st">"cumhaz"</span>, <span class="at">mark.time=</span><span class="cn">FALSE</span>, <span class="at">lty=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, <span class="at">xlim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">10</span>), <span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.80</span>), <span class="at">main=</span><span class="st">"Gender"</span>, <span class="at">xlab=</span><span class="st">"Years since operation"</span>, <span class="at">ylab=</span><span class="st">"Cumulative hazard"</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topleft"</span>, <span class="fu">c</span>(<span class="st">"Females"</span>,<span class="st">"Males"</span>), <span class="at">lty=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="na_km_logrank_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="na_km_logrank_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <ol start="3" type="a">
@@ -307,28 +368,36 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <ol start="4" type="a">
 <li>Make Nelson-Aalen plots for patients with ulceration present and absent and interpret the plots. (Ulceration is “present” if the surface of the tumor viewed in a microscope show signs of ulcers and “absent” otherwise.)</li>
 </ol>
-<div class="cell" data-hash="na_km_logrank_cache/html/unnamed-chunk-4_a8854f7681887d4940165233e710afc4">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>surv.ulcer <span class="ot">=</span> survival<span class="sc">::</span><span class="fu">survfit</span>(<span class="fu">Surv</span>(lifetime,status<span class="sc">==</span><span class="dv">1</span>) <span class="sc">~</span> <span class="fu">strata</span>(ulcer), <span class="at">data=</span>melanoma, <span class="at">ctype=</span><span class="dv">1</span>)</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(surv.ulcer, <span class="at">fun=</span><span class="st">"cumhaz"</span>, <span class="at">mark.time=</span><span class="cn">FALSE</span>, <span class="at">lty=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, <span class="at">xlim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">10</span>), <span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.80</span>), <span class="at">main=</span><span class="st">"Ulceration"</span>, <span class="at">xlab=</span><span class="st">"Years since operation"</span>, <span class="at">ylab=</span><span class="st">"Cumulative hazard"</span>)</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topleft"</span>, <span class="fu">c</span>(<span class="st">"Present"</span>,<span class="st">"Absent"</span>), <span class="at">lty=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>surv.ulcer <span class="ot">=</span> survival<span class="sc">::</span><span class="fu">survfit</span>(<span class="fu">Surv</span>(lifetime,status<span class="sc">==</span><span class="dv">1</span>) <span class="sc">~</span> <span class="fu">strata</span>(ulcer), <span class="at">data=</span>melanoma, <span class="at">ctype=</span><span class="dv">1</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(surv.ulcer, <span class="at">fun=</span><span class="st">"cumhaz"</span>, <span class="at">mark.time=</span><span class="cn">FALSE</span>, <span class="at">lty=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, <span class="at">xlim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">10</span>), <span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.80</span>), <span class="at">main=</span><span class="st">"Ulceration"</span>, <span class="at">xlab=</span><span class="st">"Years since operation"</span>, <span class="at">ylab=</span><span class="st">"Cumulative hazard"</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topleft"</span>, <span class="fu">c</span>(<span class="st">"Present"</span>,<span class="st">"Absent"</span>), <span class="at">lty=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="na_km_logrank_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="na_km_logrank_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <ol start="5" type="a">
 <li>Make Nelson-Aalen plots for the three thickness groups 0-1 mm, 2-4 mm, 5+ mm and interpret the plots.</li>
 </ol>
-<div class="cell" data-hash="na_km_logrank_cache/html/unnamed-chunk-5_0f70db67a83ad38de72e5bba803184a8">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>surv.grthick <span class="ot">=</span> survival<span class="sc">::</span><span class="fu">survfit</span>(<span class="fu">Surv</span>(lifetime,status<span class="sc">==</span><span class="dv">1</span>) <span class="sc">~</span> <span class="fu">strata</span>(grthick), <span class="at">data=</span>melanoma, <span class="at">ctype=</span><span class="dv">1</span>)</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(surv.grthick, <span class="at">fun=</span><span class="st">"cumhaz"</span>, <span class="at">mark.time=</span><span class="cn">FALSE</span>, <span class="at">lty=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">xlim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">10</span>), </span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.80</span>), <span class="at">main=</span><span class="st">"Tumor thickness"</span>, <span class="at">xlab=</span><span class="st">"Years since operation"</span>, <span class="at">ylab=</span><span class="st">"Cumulative hazard"</span>)</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topleft"</span>, <span class="fu">c</span>(<span class="st">"0-1 mm"</span>,<span class="st">"2-4 mm"</span>, <span class="st">"5+ mm"</span>), <span class="at">lty=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>surv.grthick <span class="ot">=</span> survival<span class="sc">::</span><span class="fu">survfit</span>(<span class="fu">Surv</span>(lifetime,status<span class="sc">==</span><span class="dv">1</span>) <span class="sc">~</span> <span class="fu">strata</span>(grthick), <span class="at">data=</span>melanoma, <span class="at">ctype=</span><span class="dv">1</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(surv.grthick, <span class="at">fun=</span><span class="st">"cumhaz"</span>, <span class="at">mark.time=</span><span class="cn">FALSE</span>, <span class="at">lty=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">xlim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">10</span>), </span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.80</span>), <span class="at">main=</span><span class="st">"Tumor thickness"</span>, <span class="at">xlab=</span><span class="st">"Years since operation"</span>, <span class="at">ylab=</span><span class="st">"Cumulative hazard"</span>)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topleft"</span>, <span class="fu">c</span>(<span class="st">"0-1 mm"</span>,<span class="st">"2-4 mm"</span>, <span class="st">"5+ mm"</span>), <span class="at">lty=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="na_km_logrank_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="na_km_logrank_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
@@ -337,19 +406,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>In this exercise, we will use the Kaplan-Meier estimator and the log-rank test to study survival for the melanoma patients.</p>
 <p>We will consider Kaplan-Meier estimates for the mortality from malignant melanoma treating death from other causes as censoring.</p>
 <p>We may compute and plot the Kaplan-Meier estimate of the survival distribution for male patients by the commands (you need to load the survival-library)</p>
-<div class="cell" data-hash="na_km_logrank_cache/html/unnamed-chunk-6_fb993886f24a08ada497a208a8de362d">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>fit.m<span class="ot">=</span><span class="fu">survfit</span>(<span class="fu">Surv</span>(lifetime,status<span class="sc">==</span><span class="dv">1</span>)<span class="sc">~</span><span class="dv">1</span>,<span class="at">data=</span>melanoma, <span class="at">subset=</span>(sex<span class="sc">==</span><span class="dv">2</span>), <span class="at">conf.type=</span><span class="st">"plain"</span>)</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.m, <span class="at">mark.time=</span><span class="cn">FALSE</span>, <span class="at">xlab=</span><span class="st">"Years after operation"</span>, <span class="at">main =</span> <span class="st">"Males"</span>)</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> <span class="fl">0.75</span>, <span class="at">col=</span><span class="st">"red"</span>)</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> <span class="fl">0.5</span>, <span class="at">col=</span><span class="st">"blue"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>fit.m<span class="ot">=</span><span class="fu">survfit</span>(<span class="fu">Surv</span>(lifetime,status<span class="sc">==</span><span class="dv">1</span>)<span class="sc">~</span><span class="dv">1</span>,<span class="at">data=</span>melanoma, <span class="at">subset=</span>(sex<span class="sc">==</span><span class="dv">2</span>), <span class="at">conf.type=</span><span class="st">"plain"</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.m, <span class="at">mark.time=</span><span class="cn">FALSE</span>, <span class="at">xlab=</span><span class="st">"Years after operation"</span>, <span class="at">main =</span> <span class="st">"Males"</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> <span class="fl">0.75</span>, <span class="at">col=</span><span class="st">"red"</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> <span class="fl">0.5</span>, <span class="at">col=</span><span class="st">"blue"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="na_km_logrank_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="na_km_logrank_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <p>To obtain a summary of the results, you may give the command:</p>
-<div class="cell" data-hash="na_km_logrank_cache/html/unnamed-chunk-7_2c866fd5a32d4001215f52fb98918ba8">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">#?quantile.survfit</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit.m)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">#?quantile.survfit</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit.m)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Call: survfit(formula = Surv(lifetime, status == 1) ~ 1, data = melanoma, 
     subset = (sex == 2), conf.type = "plain")
@@ -395,8 +468,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <ol start="2" type="a">
 <li>We may obtain the quartiles of the survival distribution for males by the command</li>
 </ol>
-<div class="cell" data-hash="na_km_logrank_cache/html/unnamed-chunk-8_539ba738feef69d71e006dfa522f7055">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(fit.m)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(fit.m)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>$quantile
       25       50       75 
@@ -415,13 +488,17 @@ $upper
 <ol start="3" type="a">
 <li>Make a Kaplan-Meier plot for females, and determine the lower quartile for females with 95% confidence limits (if possible). Compare with the results for males.</li>
 </ol>
-<div class="cell" data-hash="na_km_logrank_cache/html/unnamed-chunk-9_01cb46fc21038a4798a631064dbd0b60">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>fit.f<span class="ot">=</span><span class="fu">survfit</span>(<span class="fu">Surv</span>(lifetime,status<span class="sc">==</span><span class="dv">1</span>)<span class="sc">~</span><span class="dv">1</span>,<span class="at">data=</span>melanoma, <span class="at">subset=</span>(sex<span class="sc">==</span><span class="dv">1</span>), <span class="at">conf.type=</span><span class="st">"plain"</span>)</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.f, <span class="at">mark.time=</span><span class="cn">FALSE</span>, <span class="at">xlab=</span><span class="st">"Years after operation"</span>, <span class="at">main =</span> <span class="st">"Females"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>fit.f<span class="ot">=</span><span class="fu">survfit</span>(<span class="fu">Surv</span>(lifetime,status<span class="sc">==</span><span class="dv">1</span>)<span class="sc">~</span><span class="dv">1</span>,<span class="at">data=</span>melanoma, <span class="at">subset=</span>(sex<span class="sc">==</span><span class="dv">1</span>), <span class="at">conf.type=</span><span class="st">"plain"</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.f, <span class="at">mark.time=</span><span class="cn">FALSE</span>, <span class="at">xlab=</span><span class="st">"Years after operation"</span>, <span class="at">main =</span> <span class="st">"Females"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="na_km_logrank_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="na_km_logrank_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
 </div>
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(fit.f)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(fit.f)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>$quantile
       25       50       75 
@@ -439,8 +516,8 @@ NA NA NA </code></pre>
 <ol start="4" type="a">
 <li>Use the log-rank test to test the null hypothesis that males and females have the same mortality from malignant melanoma:</li>
 </ol>
-<div class="cell" data-hash="na_km_logrank_cache/html/unnamed-chunk-10_2388b5f8af3eae340b8a71bfd8c064a1">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">survdiff</span>(<span class="fu">Surv</span>(lifetime,status<span class="sc">==</span><span class="dv">1</span>) <span class="sc">~</span> sex,<span class="at">data=</span>melanoma)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">survdiff</span>(<span class="fu">Surv</span>(lifetime,status<span class="sc">==</span><span class="dv">1</span>) <span class="sc">~</span> sex,<span class="at">data=</span>melanoma)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Call:
 survdiff(formula = Surv(lifetime, status == 1) ~ sex, data = melanoma)
@@ -456,15 +533,19 @@ sex=2  79       29     19.9      4.21      6.47
 <ol start="5" type="a">
 <li>Make Kaplan-Meier plots for patients with ulceration present and absent and interpret the results. Is it possible to estimate the lower quartile for both ulceration groups? Estimate the lower quartile with confidence limits if possible. Is there a significant difference in cancer mortality for patients with ulceration present and absent?</li>
 </ol>
-<div class="cell" data-hash="na_km_logrank_cache/html/unnamed-chunk-11_600177e1af1a060e94a1d0d8f1074194">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(surv.ulcer, <span class="at">mark.time=</span><span class="cn">FALSE</span>, <span class="at">lty =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, <span class="at">xlab=</span><span class="st">"Years after operation"</span>, <span class="at">main =</span> <span class="st">"Ulceration"</span>)</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"bottomleft"</span>, <span class="fu">c</span>(<span class="st">"Present"</span>,<span class="st">"Absent"</span>), <span class="at">lty=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(surv.ulcer, <span class="at">mark.time=</span><span class="cn">FALSE</span>, <span class="at">lty =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, <span class="at">xlab=</span><span class="st">"Years after operation"</span>, <span class="at">main =</span> <span class="st">"Ulceration"</span>)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"bottomleft"</span>, <span class="fu">c</span>(<span class="st">"Present"</span>,<span class="st">"Absent"</span>), <span class="at">lty=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="na_km_logrank_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="na_km_logrank_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
 </div>
 </div>
-<div class="cell" data-hash="na_km_logrank_cache/html/unnamed-chunk-12_e26bc09fc9a180eb8169123117aa6899">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(surv.ulcer)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(surv.ulcer)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>$quantile
                             25       50 75
@@ -482,9 +563,9 @@ strata(ulcer)=ulcer=1 4.126027 NA NA
 strata(ulcer)=ulcer=2       NA NA NA</code></pre>
 </div>
 </div>
-<div class="cell" data-hash="na_km_logrank_cache/html/unnamed-chunk-13_0872f8a96df7c898fabb95843934f4b2">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># NO STRATA IN THE FORMULA NEEDED!</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">survdiff</span>(<span class="at">formula =</span> <span class="fu">Surv</span>(lifetime, status <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">~</span> ulcer, <span class="at">data =</span> melanoma)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># NO STRATA IN THE FORMULA NEEDED!</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">survdiff</span>(<span class="at">formula =</span> <span class="fu">Surv</span>(lifetime, status <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">~</span> ulcer, <span class="at">data =</span> melanoma)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Call:
 survdiff(formula = Surv(lifetime, status == 1) ~ ulcer, data = melanoma)
@@ -542,18 +623,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
     return false;
   }
-  const clipboard = new window.ClipboardJS('.code-copy-button', {
-    text: function(trigger) {
-      const codeEl = trigger.previousElementSibling.cloneNode(true);
-      for (const childEl of codeEl.children) {
-        if (isCodeAnnotation(childEl)) {
-          childEl.remove();
-        }
-      }
-      return codeEl.innerText;
-    }
-  });
-  clipboard.on('success', function(e) {
+  const onCopySuccess = function(e) {
     // button target
     const button = e.trigger;
     // don't keep focus
@@ -585,11 +655,50 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }, 1000);
     // clear code selection
     e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
   });
-  function tippyHover(el, contentFn) {
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
     const config = {
       allowHTML: true,
-      content: contentFn,
       maxWidth: 500,
       delay: 100,
       arrow: false,
@@ -599,8 +708,17 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       interactive: true,
       interactiveBorder: 10,
       theme: 'quarto',
-      placement: 'bottom-start'
+      placement: 'bottom-start',
     };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
     window.tippy(el, config); 
   }
   const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
@@ -612,7 +730,130 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       try { href = new URL(href).hash; } catch {}
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
-      return note.innerHTML;
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
     });
   }
       let selectedAnnoteEl;
@@ -656,6 +897,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
             }
             div.style.top = top - 2 + "px";
             div.style.height = height + 4 + "px";
+            div.style.left = 0;
             let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
             if (gutterDiv === null) {
               gutterDiv = window.document.createElement("div");
@@ -681,6 +923,32 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         });
         selectedAnnoteEl = undefined;
       };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
       // Attach click handler to the DT
       const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
       for (const annoteDlNode of annoteDls) {
@@ -742,17 +1010,18 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation column-body">
   <div class="nav-page nav-page-previous">
-      <a href="./index.html" class="pagination-link">
+      <a href="./index.html" class="pagination-link" aria-label="Intro">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Intro</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./cox_regr.html" class="pagination-link">
+      <a href="./cox_regr.html" class="pagination-link" aria-label="Cox Regression (low-dim)">
         <span class="nav-page-text">Cox Regression (low-dim)</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
 </div> <!-- /content -->
+
 
 
 

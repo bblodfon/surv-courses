@@ -2,13 +2,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.3.353">
+<meta name="generator" content="quarto-1.5.57">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="description" content="Various code examples and methodologies for survival analysis">
 
-<title>Material on Survival Analyses - Marginal structural models and g-formula for sustained treatment strategies</title>
+<title>Marginal structural models and g-formula for sustained treatment strategies – Material on Survival Analyses</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -23,7 +23,7 @@ ul.task-list li input[type="checkbox"] {
 }
 /* CSS for syntax highlighting */
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -34,7 +34,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
   { counter-reset: source-line 0; }
@@ -82,7 +82,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   "collapse-after": 3,
   "panel-placement": "start",
   "type": "textbox",
-  "limit": 20,
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
   "language": {
     "search-no-results-text": "No results",
     "search-matching-documents-text": "matching documents",
@@ -91,13 +97,42 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-more-match-text": "more match in this document",
     "search-more-matches-text": "more matches in this document",
     "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
     "search-detached-cancel-button-title": "Cancel",
-    "search-submit-button-title": "Submit"
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
   }
 }</script>
 
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -107,12 +142,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <header id="quarto-header" class="headroom fixed-top">
   <nav class="quarto-secondary-nav">
     <div class="container-fluid d-flex">
-      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./sustained_trts.html">Marginal structural models and g-formula for sustained treatment strategies</a></li></ol></nav>
-      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
-      </a>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./sustained_trts.html">Marginal structural models and g-formula for sustained treatment strategies</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
       </button>
@@ -122,7 +157,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation floating overflow-auto">
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
       <a href="./">Material on Survival Analyses</a> 
@@ -213,7 +248,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </ul>
     </div>
 </nav>
-<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active">
@@ -238,7 +273,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<div class="quarto-title-meta">
+<div class="quarto-title-meta column-body">
 
     
   
@@ -246,7 +281,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </div>
   
 
+
 </header>
+
 
 <section id="data" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="data">Data</h2>
@@ -266,7 +303,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="load-data-and-packages" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="load-data-and-packages">Load data and packages</h2>
 <p>In this practical we will use the following packages: <code>survival</code>, <code>tidyverse</code>, <code>data.table</code>, <code>gfoRmula</code>:</p>
-<div class="cell" data-result="false" data-hash="sustained_trts_cache/html/unnamed-chunk-1_8e4404f9ae6bfaf529a4064ab141093a">
+<div class="cell" data-result="false">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survival)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(data.table)</span>
@@ -283,7 +320,7 @@ h^{\underline{a}_0}(t)=h_0(t)e^{g(\bar{a}_t;\beta)}.
 <ol type="1">
 <li>Start by generating lagged values of treatment <span class="math inline">\(A\)</span> (denoted <code>A_lag1</code> and <code>A_lag2</code>) and lagged values of the time-dependent covariates <span class="math inline">\(L_1\)</span> (<code>L1_lag1</code>, <code>L1_lag2</code>) and <span class="math inline">\(L_2\)</span> (<code>L2_lag1</code>, <code>L2_lag2</code>). These will be used later. The lag variables can be generated (for example) using the <code>tidyverse</code> package, e.g.&nbsp;<code>dta = dta %&gt;% group_by(id) %&gt;% mutate(A_lag1=lag(A,1,default=0))</code></li>
 </ol>
-<div class="cell" data-hash="sustained_trts_cache/html/unnamed-chunk-2_33d9199919e06df7275835b2dd44fc3c">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>dta <span class="ot">=</span> dta<span class="sc">%&gt;%</span><span class="fu">group_by</span>(id)<span class="sc">%&gt;%</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">A_lag1=</span><span class="fu">lag</span>(A,<span class="dv">1</span>,<span class="at">default=</span><span class="dv">0</span>),<span class="at">A_lag2=</span><span class="fu">lag</span>(A,<span class="dv">2</span>,<span class="at">default=</span><span class="dv">0</span>))<span class="sc">%&gt;%</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">L1_lag1=</span><span class="fu">lag</span>(L1,<span class="dv">1</span>,<span class="at">default=</span><span class="dv">0</span>),<span class="at">L1_lag2=</span><span class="fu">lag</span>(L1,<span class="dv">2</span>,<span class="at">default=</span><span class="dv">0</span>))<span class="sc">%&gt;%</span></span>
@@ -299,7 +336,7 @@ W(t)=\prod_{k=0}^{t}\frac{1}{\mathbb{P}(A_k|A_{k-1},X,L_{1k},L_{2k})}, \quad t=0
 \]</span></li>
 <li>Check out the distribution of the weights</li>
 </ol>
-<div class="cell" data-hash="sustained_trts_cache/html/unnamed-chunk-3_4614b41f9dd15ca211a6f16d9fbab618">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>iptw.mod <span class="ot">=</span> <span class="fu">glm</span>(A<span class="sc">~</span>A_lag1<span class="sc">+</span>A_lag2<span class="sc">+</span>X<span class="sc">+</span>L1<span class="sc">+</span>L2<span class="sc">+</span><span class="fu">as.factor</span>(visit),<span class="at">data=</span>dta,<span class="at">family=</span><span class="st">"binomial"</span>)</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>pred.iptw <span class="ot">=</span> <span class="fu">predict</span>(iptw.mod,<span class="at">newdata=</span>dta,<span class="at">type=</span><span class="st">"response"</span>)</span>
@@ -310,7 +347,11 @@ W(t)=\prod_{k=0}^{t}\frac{1}{\mathbb{P}(A_k|A_{k-1},X,L_{1k},L_{2k})}, \quad t=0
 <span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(dta<span class="sc">$</span>iptw)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="sustained_trts_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="sustained_trts_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <ol start="3" type="1">
@@ -318,7 +359,7 @@ W(t)=\prod_{k=0}^{t}\frac{1}{\mathbb{P}(A_k|A_{k-1},X,L_{1k},L_{2k})}, \quad t=0
 SW(t)=\prod_{k=0}^{t}\frac{\mathbb{P}(A_k|A_{k-1})}{\mathbb{P}(A_k|A_{k-1},X,L_{1t},L_{2t})}, \quad t=0,1,2
 \]</span></li>
 </ol>
-<div class="cell" data-hash="sustained_trts_cache/html/unnamed-chunk-4_f56e06b7a7b9d79d89b24cf4819ac8a5">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>iptw.mod.stab <span class="ot">=</span> <span class="fu">glm</span>(A<span class="sc">~</span>A_lag1<span class="sc">+</span>A_lag2<span class="sc">+</span><span class="fu">as.factor</span>(visit),<span class="at">data=</span>dta,<span class="at">family=</span><span class="st">"binomial"</span>)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>pred.iptw.stab <span class="ot">=</span> <span class="fu">predict</span>(iptw.mod.stab,<span class="at">newdata=</span>dta,<span class="at">type=</span><span class="st">"response"</span>)</span>
@@ -329,7 +370,11 @@ SW(t)=\prod_{k=0}^{t}\frac{\mathbb{P}(A_k|A_{k-1})}{\mathbb{P}(A_k|A_{k-1},X,L_{
 <span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(dta<span class="sc">$</span>iptw.stab)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="sustained_trts_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="sustained_trts_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <ol start="4" type="1">
@@ -340,7 +385,7 @@ SW(t)=\prod_{k=0}^{t}\frac{\mathbb{P}(A_k|A_{k-1})}{\mathbb{P}(A_k|A_{k-1},X,L_{
 <li>Use the MSM to obtain estimated survival curves under the treatment strategies (i) <span class="math inline">\(a_0=a_1=a_2=1\)</span>, (ii) <span class="math inline">\(a_0=a_1=a_2=0\)</span>. This can be done using <code>survfit(cox.msm1,newdata=data.frame(A=1))</code> for strategy (i), for example.</li>
 <li>Obtain estimates of the survival probabilities at time 3 under the two treatment strategies, i.e.&nbsp;<span class="math inline">\(S^{\underline{a}_0=1}(3)\)</span> and <span class="math inline">\(S^{\underline{a}_0=0}(3)\)</span>, and the corresponding risk difference.</li>
 </ol>
-<div class="cell" data-hash="sustained_trts_cache/html/unnamed-chunk-5_10708f1c6dfcb8e880c0846716781a06">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">#---</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#MSM1: Assumes that the hazard depends only on current A</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">#change iptw.stab to iptw for unstabilized weights.</span></span>
@@ -384,7 +429,11 @@ Score (logrank) test = 38.89  on 1 df,   p=4e-10,   Robust = 22.6  p=2e-06
 <span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"bottomleft"</span>,<span class="fu">c</span>(<span class="st">"MSM1: Sustained A=1"</span>,<span class="st">"MSM1: Sustained A=0"</span>),</span>
 <span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>       <span class="at">col=</span><span class="fu">c</span>(<span class="st">"blue"</span>,<span class="st">"red"</span>),<span class="at">lwd=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="sustained_trts_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="sustained_trts_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">#---</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co">#survival probabilities and risk difference at time 3</span></span>
@@ -409,7 +458,7 @@ Score (logrank) test = 38.89  on 1 df,   p=4e-10,   Robust = 22.6  p=2e-06
 h^{\underline{a}_0}(t)=h_0(t)e^{\beta_0 a_t+\beta_1 a_{t-1}+\beta_2 a_{t-2}}.
 \]</span> To obtaining the survival curves under the two treatment strategies based on this MSM, we need to take into account that treatment status <span class="math inline">\(A\)</span> is assumed to be 0 before time, i.e.&nbsp;everyone is untreated before time zero. This means that we cannot obtain the survival probability estimates using a single <code>survfit</code> command (as far as we know!). You may wish to follow the code in the solution for this part.</li>
 </ol>
-<div class="cell" data-hash="sustained_trts_cache/html/unnamed-chunk-6_e686f34c4fb6b9307bc6827fdb5b62e5">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">#---</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co">#MSM2: Assumes that the hazard depends on all lags of A</span></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>cox.msm2<span class="ot">=</span><span class="fu">coxph</span>(<span class="fu">Surv</span>(T.start,T.stop,D)<span class="sc">~</span>A<span class="sc">+</span>A_lag1<span class="sc">+</span>A_lag2,</span>
@@ -471,7 +520,11 @@ Score (logrank) test = 62.91  on 3 df,   p=1e-13,   Robust = 24.73  p=2e-05
 <span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"bottomleft"</span>,<span class="fu">c</span>(<span class="st">"MSM2: Sustained A=1"</span>,<span class="st">"MSM2: Sustained A=0"</span>),</span>
 <span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>       <span class="at">col=</span><span class="fu">c</span>(<span class="st">"blue"</span>,<span class="st">"red"</span>),<span class="at">lwd=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="sustained_trts_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="sustained_trts_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co">#---</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="co">#risk difference at time 3</span></span>
@@ -480,7 +533,7 @@ Score (logrank) test = 62.91  on 3 df,   p=1e-13,   Robust = 24.73  p=2e-05
 <span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>rd.msm2.time3 <span class="ot">=</span> risk.A1.msm2.t3<span class="sc">-</span>risk.A0.msm2.t3</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-hash="sustained_trts_cache/html/unnamed-chunk-7_90a87cd180fd226740140fae1093e27b">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">#---</span></span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co">#compare marginal survival curves from the two MSMs</span></span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(times,surv.A1.msm1,<span class="at">type=</span><span class="st">"s"</span>,<span class="at">col=</span><span class="st">"blue"</span>,<span class="at">lwd=</span><span class="dv">2</span>,</span>
@@ -494,7 +547,11 @@ Score (logrank) test = 62.91  on 3 df,   p=1e-13,   Robust = 24.73  p=2e-05
 <span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"MSM2: Sustained A=1"</span>,<span class="st">"MSM2: Sustained A=0"</span>),</span>
 <span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>       <span class="at">col=</span><span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">"blue"</span>,<span class="st">"red"</span>),<span class="dv">4</span>),<span class="at">lty=</span><span class="fu">rep</span>(<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>),<span class="at">each=</span><span class="dv">2</span>),<span class="at">lwd=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="sustained_trts_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="sustained_trts_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
@@ -504,7 +561,7 @@ Score (logrank) test = 62.91  on 3 df,   p=1e-13,   Robust = 24.73  p=2e-05
 <li>Follow the steps below to implement the parametric g-formula `by hand’ to estimate <span class="math inline">\(S^{\underline{a}_0=1}(t)\)</span> and <span class="math inline">\(S^{\underline{a}_0=0}(t)\)</span>. We hope that this provides some insight into how this method works.</li>
 </ol>
 <p>What are the estimated marginal survival probabilities at times <span class="math inline">\(t=1,2,3\)</span> under the two treatment strategies?</p>
-<div class="cell" data-hash="sustained_trts_cache/html/unnamed-chunk-8_2c9897991f392ddbf830b553547c0d97">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co">#---------------------</span></span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="co">#(a) Fit a linear regression for  L1_{k}|L1_{k-1}, L2_{k-1},X,A_{k-1} </span></span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="co">#where k denotes visit, for visits 1 and 2 combined.</span></span>
@@ -609,13 +666,13 @@ Score (logrank) test = 62.91  on 3 df,   p=1e-13,   Robust = 24.73  p=2e-05
 <span id="cb19-102"><a href="#cb19-102" aria-hidden="true" tabindex="-1"></a><span class="co">#---------------------</span></span>
 <span id="cb19-103"><a href="#cb19-103" aria-hidden="true" tabindex="-1"></a><span class="fu">sapply</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">2</span>,<span class="at">FUN=</span><span class="cf">function</span>(x){<span class="fu">mean</span>(dta.sim<span class="sc">$</span>surv.prob[dta.sim<span class="sc">$</span>T.start<span class="sc">==</span>x])})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.8396178 0.6349149 0.4457436</code></pre>
+<pre><code>[1] 0.8396178 0.6273658 0.4443957</code></pre>
 </div>
 </div>
 <ol start="2" type="1">
 <li>Use the <code>gformula_survival</code> function in the <code>gfoRmula</code> package to implement the parametric g-formula, by adapting the example in the lecture slides. What are the estimated marginal survival probabilities at times <span class="math inline">\(t=1,2,3\)</span> under the two treatment strategies?</li>
 </ol>
-<div class="cell" data-hash="sustained_trts_cache/html/unnamed-chunk-9_75d31154b82fec76f9f74f9106169279">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co">#data has to be in the form of a data table</span></span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>dta.gform <span class="ot">=</span> <span class="fu">data.table</span>(dta)</span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -654,37 +711,37 @@ Score (logrank) test = 62.91  on 3 df,   p=1e-13,   Robust = 24.73  p=2e-05
 <div class="cell-output cell-output-stdout">
 <pre><code>       k Interv.   NP Risk g-form risk     Risk SE Risk lower 95% CI
    &lt;num&gt;   &lt;num&gt;     &lt;num&gt;       &lt;num&gt;       &lt;num&gt;             &lt;num&gt;
-1:     0       0 0.1080000  0.10800000 0.006896859        0.09890000
-2:     0       1        NA  0.16038223 0.009977718        0.14669448
-3:     0       2        NA  0.05920953 0.009035162        0.04804313
-4:     1       0 0.2003327  0.23334982 0.014235056        0.22853606
-5:     1       1        NA  0.37067984 0.026184620        0.35211392
-6:     1       2        NA  0.10911939 0.014770751        0.08989074
-7:     2       0 0.2646416  0.33492302 0.012928313        0.32746286
-8:     2       1        NA  0.55376512 0.029687549        0.52458603
-9:     2       2        NA  0.14422724 0.018928880        0.11526240
+1:     0       0 0.1080000  0.10800000 0.006600505        0.09890000
+2:     0       1        NA  0.16038223 0.010388395        0.14669448
+3:     0       2        NA  0.05920953 0.009554443        0.04764895
+4:     1       0 0.2003327  0.23334982 0.013176639        0.22456362
+5:     1       1        NA  0.37067984 0.022232153        0.35211392
+6:     1       2        NA  0.10911939 0.016672139        0.08768152
+7:     2       0 0.2646416  0.33492302 0.014608157        0.32086593
+8:     2       1        NA  0.55376512 0.027931134        0.52458603
+9:     2       2        NA  0.14422724 0.021549159        0.11237127
    Risk upper 95% CI Risk ratio      RR SE RR lower 95% CI RR upper 95% CI
                &lt;num&gt;      &lt;num&gt;      &lt;num&gt;           &lt;num&gt;           &lt;num&gt;
 1:        0.11855000  1.0000000 0.00000000       1.0000000       1.0000000
-2:        0.17499957  1.4850206 0.07432389       1.3700649       1.5982841
-3:        0.07718767  0.5482364 0.06633569       0.4498578       0.6632936
-4:        0.26598826  1.0000000 0.00000000       1.0000000       1.0000000
-5:        0.42228577  1.5885157 0.06698023       1.4869708       1.6933041
-6:        0.13703452  0.4676215 0.05595326       0.3727221       0.5522950
-7:        0.36658322  1.0000000 0.00000000       1.0000000       1.0000000
-8:        0.60292651  1.6534101 0.06760075       1.5418510       1.7593749
-9:        0.17423417  0.4306280 0.05100182       0.3501449       0.5088472
+2:        0.17719161  1.4850206 0.08067101       1.3700649       1.6026946
+3:        0.07718767  0.5482364 0.07257958       0.4395280       0.6632936
+4:        0.26157927  1.0000000 0.00000000       1.0000000       1.0000000
+5:        0.41516905  1.5885157 0.07995812       1.4869708       1.7096931
+6:        0.13703452  0.4676215 0.05924834       0.3669187       0.5522950
+7:        0.36597031  1.0000000 0.00000000       1.0000000       1.0000000
+8:        0.60186791  1.6534101 0.08115970       1.5418510       1.7830851
+9:        0.17423417  0.4306280 0.05504768       0.3432467       0.5088472
    Risk difference       RD SE RD lower 95% CI RD upper 95% CI % Intervened On
              &lt;num&gt;       &lt;num&gt;           &lt;num&gt;           &lt;num&gt;           &lt;num&gt;
 1:      0.00000000 0.000000000      0.00000000      0.00000000              NA
-2:      0.05238223 0.007377400      0.04187946      0.06384012              NA
-3:     -0.04879047 0.007423618     -0.05955919     -0.03871218              NA
+2:      0.05238223 0.008233454      0.04187946      0.06554161              NA
+3:     -0.04879047 0.008098353     -0.06101884     -0.03871218              NA
 4:      0.00000000 0.000000000      0.00000000      0.00000000              NA
-5:      0.13733002 0.017357877      0.11825783      0.16883759              NA
-6:     -0.12423043 0.016099644     -0.15541903     -0.10832188              NA
+5:      0.13733002 0.017580376      0.11825783      0.16928108              NA
+6:     -0.12423043 0.014576530     -0.15336606     -0.10832188              NA
 7:      0.00000000 0.000000000      0.00000000      0.00000000             0.0
-8:      0.21884210 0.023487571      0.18433665      0.25403097            71.0
-9:     -0.19069578 0.017385480     -0.21768185     -0.16683480            77.7
+8:      0.21884210 0.024617959      0.18433665      0.25616994            71.0
+9:     -0.19069578 0.017090050     -0.21768185     -0.16683480            77.7
    Aver % Intervened On
                   &lt;num&gt;
 1:                   NA
@@ -738,18 +795,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
     return false;
   }
-  const clipboard = new window.ClipboardJS('.code-copy-button', {
-    text: function(trigger) {
-      const codeEl = trigger.previousElementSibling.cloneNode(true);
-      for (const childEl of codeEl.children) {
-        if (isCodeAnnotation(childEl)) {
-          childEl.remove();
-        }
-      }
-      return codeEl.innerText;
-    }
-  });
-  clipboard.on('success', function(e) {
+  const onCopySuccess = function(e) {
     // button target
     const button = e.trigger;
     // don't keep focus
@@ -781,11 +827,50 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }, 1000);
     // clear code selection
     e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
   });
-  function tippyHover(el, contentFn) {
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
     const config = {
       allowHTML: true,
-      content: contentFn,
       maxWidth: 500,
       delay: 100,
       arrow: false,
@@ -795,8 +880,17 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       interactive: true,
       interactiveBorder: 10,
       theme: 'quarto',
-      placement: 'bottom-start'
+      placement: 'bottom-start',
     };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
     window.tippy(el, config); 
   }
   const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
@@ -808,7 +902,130 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       try { href = new URL(href).hash; } catch {}
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
-      return note.innerHTML;
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
     });
   }
       let selectedAnnoteEl;
@@ -852,6 +1069,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
             }
             div.style.top = top - 2 + "px";
             div.style.height = height + 4 + "px";
+            div.style.left = 0;
             let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
             if (gutterDiv === null) {
               gutterDiv = window.document.createElement("div");
@@ -877,6 +1095,32 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         });
         selectedAnnoteEl = undefined;
       };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
       // Attach click handler to the DT
       const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
       for (const annoteDlNode of annoteDls) {
@@ -938,17 +1182,18 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation column-body">
   <div class="nav-page nav-page-previous">
-      <a href="./time_dep_trts.html" class="pagination-link">
+      <a href="./time_dep_trts.html" class="pagination-link" aria-label="Censoring and time-dependent treatment strategies">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Censoring and time-dependent treatment strategies</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./causal_comp_risk.html" class="pagination-link">
+      <a href="./causal_comp_risk.html" class="pagination-link" aria-label="Estimating causal effects on time-to-event outcomes under competing risks">
         <span class="nav-page-text">Estimating causal effects on time-to-event outcomes under competing risks</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
 </div> <!-- /content -->
+
 
 
 

@@ -2,13 +2,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.3.353">
+<meta name="generator" content="quarto-1.5.57">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="description" content="Various code examples and methodologies for survival analysis">
 
-<title>Material on Survival Analyses - Multi-state models</title>
+<title>Multi-state models – Material on Survival Analyses</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -23,7 +23,7 @@ ul.task-list li input[type="checkbox"] {
 }
 /* CSS for syntax highlighting */
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -34,7 +34,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
   { counter-reset: source-line 0; }
@@ -82,7 +82,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   "collapse-after": 3,
   "panel-placement": "start",
   "type": "textbox",
-  "limit": 20,
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
   "language": {
     "search-no-results-text": "No results",
     "search-matching-documents-text": "matching documents",
@@ -91,13 +97,42 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-more-match-text": "more match in this document",
     "search-more-matches-text": "more matches in this document",
     "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
     "search-detached-cancel-button-title": "Cancel",
-    "search-submit-button-title": "Submit"
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
   }
 }</script>
 
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -107,12 +142,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <header id="quarto-header" class="headroom fixed-top">
   <nav class="quarto-secondary-nav">
     <div class="container-fluid d-flex">
-      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./mstate.html">Multi-state models</a></li></ol></nav>
-      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
-      </a>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./mstate.html">Multi-state models</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
       </button>
@@ -122,7 +157,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation floating overflow-auto">
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
       <a href="./">Material on Survival Analyses</a> 
@@ -213,7 +248,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </ul>
     </div>
 </nav>
-<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
         
@@ -228,7 +263,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<div class="quarto-title-meta">
+<div class="quarto-title-meta column-page-right">
 
     
   
@@ -236,18 +271,34 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </div>
   
 
+
 </header>
 
-<div class="cell" data-hash="mstate_cache/html/libs_8149a833c1d8fad4a37ed564498f2e8e">
+
+<div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survival)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mstate)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tibble)</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'dplyr'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:stats':
+
+    filter, lag</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union</code></pre>
+</div>
 </div>
 <p>In this exercise, we will see how we may find the Nelson-Aalen estimates for the cumulative transition intensities and the Aalen-Johansen estimates for the transition probabilities in a Markov illness-death model. To this end, we will use the <strong>bone marrow transplantation data</strong> described in example 1.13 in the ABG-book and used for illustration in example 3.16. To read the data into R you may give the command:</p>
-<div class="cell" data-hash="mstate_cache/html/unnamed-chunk-1_4b37dde43f66d257d65569994397fba0">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>bonemarrow <span class="ot">=</span> <span class="fu">read.table</span>(<span class="st">"https://www.med.uio.no/imb/english/research/centres/ocbe/courses/imb9335/bone-marrow.txt"</span>,<span class="at">header=</span>T) <span class="sc">%&gt;%</span> <span class="fu">as_tibble</span>()</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>bonemarrow <span class="sc">%&gt;%</span> <span class="fu">select</span>(T2, DF, TP, P)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>bonemarrow <span class="ot">=</span> <span class="fu">read.table</span>(<span class="st">"https://www.med.uio.no/imb/english/research/centres/ocbe/courses/imb9335/bone-marrow.txt"</span>,<span class="at">header=</span>T) <span class="sc">%&gt;%</span> <span class="fu">as_tibble</span>()</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>bonemarrow <span class="sc">%&gt;%</span> <span class="fu">select</span>(T2, DF, TP, P)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 137 × 4
       T2    DF    TP     P
@@ -293,9 +344,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>The data contain information for <span class="math inline">\(137\)</span> patients with acute leukemia who had a bone marrow transplantation. The patients were followed for a maximum of seven years, and times to relapse and death were recorded. It was also recorded if and when the platelet count of a patient returned to a self-sustaining level. The possible events for a patient may be described by an illness-death model without recovery with the <strong>three states</strong> “transplanted”, “platelet recovered”, and “relapsed or dead”. A patient starts out in state “transplanted” at time zero when he/she gets the bone marrow transplant. If the platelets recover, the patient moves to state “platelet recovered”, and if he/she then relapses or dies, the patient moves on to state “relapsed or dead”. If the patient relapses or dies without the platelets returning to a normal level, he moves directly from state “transplanted” to state “relapsed or dead”.</p>
 <p>To find the Nelson-Aalen estimates and the empirical transition probabilities (i.e.&nbsp;Aalen-Johansen estimates) we will use the <code>mstate</code> package so this has to be installed and loaded.</p>
 <p>We start out by defining the states and the possible transitions between them. This is achieved by the command:</p>
-<div class="cell" data-hash="mstate_cache/html/unnamed-chunk-2_89696138dea35b9d808329bcd1bfd956">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>tmat <span class="ot">=</span> <span class="fu">transMat</span>(<span class="at">x =</span> <span class="fu">list</span>(<span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">3</span>),<span class="fu">c</span>(<span class="dv">3</span>),<span class="fu">c</span>()), <span class="at">names =</span> <span class="fu">c</span>(<span class="st">"transplanted"</span>,<span class="st">"recovered"</span>,<span class="st">"relapsed.dead"</span>))</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>tmat</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>tmat <span class="ot">=</span> <span class="fu">transMat</span>(<span class="at">x =</span> <span class="fu">list</span>(<span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">3</span>),<span class="fu">c</span>(<span class="dv">3</span>),<span class="fu">c</span>()), <span class="at">names =</span> <span class="fu">c</span>(<span class="st">"transplanted"</span>,<span class="st">"recovered"</span>,<span class="st">"relapsed.dead"</span>))</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>tmat</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>               to
 from            transplanted recovered relapsed.dead
@@ -305,9 +356,9 @@ from            transplanted recovered relapsed.dead
 </div>
 </div>
 <p>To perform the estimation, we need to convert the data-frame to a <strong>long format</strong>, where there are 2-3 lines for each patient:</p>
-<div class="cell" data-hash="mstate_cache/html/unnamed-chunk-3_67a07642781eae30d7b737e2ea202e2a">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>bonemarrow.long <span class="ot">=</span> <span class="fu">msprep</span>(<span class="at">time=</span><span class="fu">c</span>(<span class="cn">NA</span>,<span class="st">"TP"</span>,<span class="st">"T2"</span>), <span class="at">status=</span><span class="fu">c</span>(<span class="cn">NA</span>,<span class="st">"P"</span>,<span class="st">"DF"</span>),<span class="at">data=</span>bonemarrow,<span class="at">trans=</span>tmat)</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>bonemarrow.long <span class="sc">%&gt;%</span> <span class="fu">as_tibble</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>bonemarrow.long <span class="ot">=</span> <span class="fu">msprep</span>(<span class="at">time=</span><span class="fu">c</span>(<span class="cn">NA</span>,<span class="st">"TP"</span>,<span class="st">"T2"</span>), <span class="at">status=</span><span class="fu">c</span>(<span class="cn">NA</span>,<span class="st">"P"</span>,<span class="st">"DF"</span>),<span class="at">data=</span>bonemarrow,<span class="at">trans=</span>tmat)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>bonemarrow.long <span class="sc">%&gt;%</span> <span class="fu">as_tibble</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 394 × 8
       id  from    to trans Tstart Tstop  time status
@@ -325,9 +376,9 @@ from            transplanted recovered relapsed.dead
 # ℹ 384 more rows</code></pre>
 </div>
 </div>
-<div class="cell" data-hash="mstate_cache/html/unnamed-chunk-4_091213b6f605a4b26cddf2fed755c3d5">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># example</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>bonemarrow <span class="sc">%&gt;%</span> <span class="fu">as_tibble</span>() <span class="sc">%&gt;%</span> <span class="fu">filter</span>(T2 <span class="sc">==</span> <span class="dv">383</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># example</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>bonemarrow <span class="sc">%&gt;%</span> <span class="fu">as_tibble</span>() <span class="sc">%&gt;%</span> <span class="fu">filter</span>(T2 <span class="sc">==</span> <span class="dv">383</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 1 × 22
       g    T1    T2     D     R    DF    TA     A    TC     C    TP     P    Z1
@@ -338,70 +389,102 @@ from            transplanted recovered relapsed.dead
 </div>
 </div>
 <p>Then we fit a stratified Cox-model with no covariates (stratifying on the type of transition), extract the Nelson-Aalen estimates for the cumulative transition intensities and make a plot of these:</p>
-<div class="cell" data-hash="mstate_cache/html/unnamed-chunk-5_6f6309ffda7db8dd05842f0524cbd2df">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>cox.bm<span class="ot">=</span><span class="fu">coxph</span>(<span class="fu">Surv</span>(Tstart,Tstop,status)<span class="sc">~</span><span class="fu">strata</span>(trans),<span class="at">data=</span>bonemarrow.long, <span class="at">method=</span><span class="st">"breslow"</span>)</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>haz.bm<span class="ot">=</span><span class="fu">msfit</span>(cox.bm,<span class="at">trans=</span>tmat)</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(haz.bm,<span class="at">xlab=</span><span class="st">"Days post-transplant"</span>,<span class="at">xlim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1000</span>),<span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">3.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>cox.bm<span class="ot">=</span><span class="fu">coxph</span>(<span class="fu">Surv</span>(Tstart,Tstop,status)<span class="sc">~</span><span class="fu">strata</span>(trans),<span class="at">data=</span>bonemarrow.long, <span class="at">method=</span><span class="st">"breslow"</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>haz.bm<span class="ot">=</span><span class="fu">msfit</span>(cox.bm,<span class="at">trans=</span>tmat)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(haz.bm,<span class="at">xlab=</span><span class="st">"Days post-transplant"</span>,<span class="at">xlim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1000</span>),<span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">3.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="mstate_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="mstate_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <p>To find the Aalen-Johansen estimates of the transition probabilities, we give the command:</p>
-<div class="cell" data-hash="mstate_cache/html/unnamed-chunk-6_9d2f3739720683c31496b1f4dd7413fb">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>prob.bm <span class="ot">=</span> <span class="fu">probtrans</span>(haz.bm,<span class="at">predt=</span><span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>prob.bm <span class="ot">=</span> <span class="fu">probtrans</span>(haz.bm,<span class="at">predt=</span><span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>We may extract the empirical transition probabilities from state “transplanted” (state 1) by the command <code>prob.bm[[1]]</code>, and similarly we obtain the empirical transition probabilities from state “recovered” (state 2) by <code>prob.bm[[2]]</code>.</p>
 <p>The transition probabilities may be plotted in a stacked manner or as separate estimates by the commands:</p>
-<div class="cell" data-hash="mstate_cache/html/unnamed-chunk-7_7f5e62d845093e7473dca46be368fddd">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(prob.bm,<span class="at">type=</span><span class="st">"filled"</span>,<span class="at">ord=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">1</span>,<span class="dv">3</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(prob.bm,<span class="at">type=</span><span class="st">"filled"</span>,<span class="at">ord=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">1</span>,<span class="dv">3</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="mstate_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="mstate_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
 </div>
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(prob.bm,<span class="at">type=</span><span class="st">"filled"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(prob.bm,<span class="at">type=</span><span class="st">"filled"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="mstate_files/figure-html/unnamed-chunk-7-2.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="mstate_files/figure-html/unnamed-chunk-7-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <p>Probability of being in each state:</p>
-<div class="cell" data-hash="mstate_cache/html/unnamed-chunk-8_a3f1d7db46e8497d57c7a90ae6eea595">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(prob.bm,<span class="at">type=</span><span class="st">"single"</span>,<span class="at">xlim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1000</span>),<span class="at">col=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(prob.bm,<span class="at">type=</span><span class="st">"single"</span>,<span class="at">xlim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1000</span>),<span class="at">col=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="mstate_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="mstate_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <ol type="a">
 <li><p>Perform the commands given above. Make sure that you understand what each of the commands and plots give you, and compare the results with those of example 3.16 in the ABG-book.</p></li>
 <li><p>Above we used the probtrans command with the option predt=0. This gives transition probabilities from time s = 0 to time t. Also compute and plot the transition probabilities for <span class="math inline">\(s = 14, 28\)</span> and <span class="math inline">\(42\)</span>. What can you learn from these plots?</p></li>
 </ol>
-<div class="cell" data-hash="mstate_cache/html/unnamed-chunk-9_b08313c359d020f10759c2ef250550ff">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>prob.bm<span class="fl">.14</span> <span class="ot">=</span> <span class="fu">probtrans</span>(haz.bm,<span class="at">predt=</span><span class="dv">14</span>)</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(prob.bm<span class="fl">.14</span>, <span class="at">type =</span> <span class="st">"single"</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1000</span>), <span class="at">col =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">main =</span> <span class="st">'s = 14'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>prob.bm<span class="fl">.14</span> <span class="ot">=</span> <span class="fu">probtrans</span>(haz.bm,<span class="at">predt=</span><span class="dv">14</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(prob.bm<span class="fl">.14</span>, <span class="at">type =</span> <span class="st">"single"</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1000</span>), <span class="at">col =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">main =</span> <span class="st">'s = 14'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="mstate_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="mstate_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
 </div>
 </div>
-<div class="cell" data-hash="mstate_cache/html/unnamed-chunk-10_03ca530189659e625d86c668f7ba326e">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>prob.bm<span class="fl">.28</span> <span class="ot">=</span> <span class="fu">probtrans</span>(haz.bm, <span class="at">predt =</span> <span class="dv">28</span>)</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(prob.bm<span class="fl">.28</span>, <span class="at">type =</span> <span class="st">"single"</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1000</span>), <span class="at">col =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">main =</span> <span class="st">'s = 28'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>prob.bm<span class="fl">.28</span> <span class="ot">=</span> <span class="fu">probtrans</span>(haz.bm, <span class="at">predt =</span> <span class="dv">28</span>)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(prob.bm<span class="fl">.28</span>, <span class="at">type =</span> <span class="st">"single"</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1000</span>), <span class="at">col =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">main =</span> <span class="st">'s = 28'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="mstate_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="mstate_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
 </div>
 </div>
-<div class="cell" data-hash="mstate_cache/html/unnamed-chunk-11_e781517858396cca97cd1bd44983f10c">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>prob.bm<span class="fl">.42</span> <span class="ot">=</span> <span class="fu">probtrans</span>(haz.bm,<span class="at">predt=</span><span class="dv">42</span>)</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(prob.bm<span class="fl">.42</span>, <span class="at">type =</span> <span class="st">"single"</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1000</span>), <span class="at">col =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">main =</span> <span class="st">'s = 42'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>prob.bm<span class="fl">.42</span> <span class="ot">=</span> <span class="fu">probtrans</span>(haz.bm,<span class="at">predt=</span><span class="dv">42</span>)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(prob.bm<span class="fl">.42</span>, <span class="at">type =</span> <span class="st">"single"</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1000</span>), <span class="at">col =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">main =</span> <span class="st">'s = 42'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="mstate_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="mstate_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <ul>
 <li>What if I start from state 2?</li>
 </ul>
-<div class="cell" data-hash="mstate_cache/html/unnamed-chunk-12_f3992986547889c66d4ac45063e95041">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(prob.bm<span class="fl">.14</span>, <span class="at">from =</span> <span class="dv">2</span>, <span class="at">type =</span> <span class="st">"single"</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1000</span>), <span class="at">col =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">main =</span> <span class="st">'s = 14 from 2nd Recovery state'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(prob.bm<span class="fl">.14</span>, <span class="at">from =</span> <span class="dv">2</span>, <span class="at">type =</span> <span class="st">"single"</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1000</span>), <span class="at">col =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">main =</span> <span class="st">'s = 14 from 2nd Recovery state'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="mstate_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="mstate_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <p>Reference:</p>
@@ -447,18 +530,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
     return false;
   }
-  const clipboard = new window.ClipboardJS('.code-copy-button', {
-    text: function(trigger) {
-      const codeEl = trigger.previousElementSibling.cloneNode(true);
-      for (const childEl of codeEl.children) {
-        if (isCodeAnnotation(childEl)) {
-          childEl.remove();
-        }
-      }
-      return codeEl.innerText;
-    }
-  });
-  clipboard.on('success', function(e) {
+  const onCopySuccess = function(e) {
     // button target
     const button = e.trigger;
     // don't keep focus
@@ -490,11 +562,50 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }, 1000);
     // clear code selection
     e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
   });
-  function tippyHover(el, contentFn) {
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
     const config = {
       allowHTML: true,
-      content: contentFn,
       maxWidth: 500,
       delay: 100,
       arrow: false,
@@ -504,8 +615,17 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       interactive: true,
       interactiveBorder: 10,
       theme: 'quarto',
-      placement: 'bottom-start'
+      placement: 'bottom-start',
     };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
     window.tippy(el, config); 
   }
   const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
@@ -517,7 +637,130 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       try { href = new URL(href).hash; } catch {}
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
-      return note.innerHTML;
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
     });
   }
       let selectedAnnoteEl;
@@ -561,6 +804,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
             }
             div.style.top = top - 2 + "px";
             div.style.height = height + 4 + "px";
+            div.style.left = 0;
             let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
             if (gutterDiv === null) {
               gutterDiv = window.document.createElement("div");
@@ -586,6 +830,32 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         });
         selectedAnnoteEl = undefined;
       };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
       // Attach click handler to the DT
       const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
       for (const annoteDlNode of annoteDls) {
@@ -647,17 +917,18 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation column-page-right">
   <div class="nav-page nav-page-previous">
-      <a href="./aalen.html" class="pagination-link">
+      <a href="./aalen.html" class="pagination-link" aria-label="Additive regression">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Additive regression</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./frailty.html" class="pagination-link">
+      <a href="./frailty.html" class="pagination-link" aria-label="Frailty models for clustered data">
         <span class="nav-page-text">Frailty models for clustered data</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
 </div> <!-- /content -->
+
 
 
 

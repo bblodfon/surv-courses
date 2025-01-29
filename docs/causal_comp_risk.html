@@ -2,13 +2,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.3.353">
+<meta name="generator" content="quarto-1.5.57">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="description" content="Various code examples and methodologies for survival analysis">
 
-<title>Material on Survival Analyses - Estimating causal effects on time-to-event outcomes under competing risks</title>
+<title>Estimating causal effects on time-to-event outcomes under competing risks – Material on Survival Analyses</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -23,7 +23,7 @@ ul.task-list li input[type="checkbox"] {
 }
 /* CSS for syntax highlighting */
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -34,7 +34,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
   { counter-reset: source-line 0; }
@@ -81,7 +81,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   "collapse-after": 3,
   "panel-placement": "start",
   "type": "textbox",
-  "limit": 20,
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
   "language": {
     "search-no-results-text": "No results",
     "search-matching-documents-text": "matching documents",
@@ -90,13 +96,42 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-more-match-text": "more match in this document",
     "search-more-matches-text": "more matches in this document",
     "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
     "search-detached-cancel-button-title": "Cancel",
-    "search-submit-button-title": "Submit"
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
   }
 }</script>
 
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -106,12 +141,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <header id="quarto-header" class="headroom fixed-top">
   <nav class="quarto-secondary-nav">
     <div class="container-fluid d-flex">
-      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./causal_comp_risk.html">Estimating causal effects on time-to-event outcomes under competing risks</a></li></ol></nav>
-      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
-      </a>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./causal_comp_risk.html">Estimating causal effects on time-to-event outcomes under competing risks</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
       </button>
@@ -121,7 +156,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation floating overflow-auto">
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
       <a href="./">Material on Survival Analyses</a> 
@@ -212,7 +247,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </ul>
     </div>
 </nav>
-<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active">
@@ -238,7 +273,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<div class="quarto-title-meta">
+<div class="quarto-title-meta column-body">
 
     
   
@@ -246,7 +281,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </div>
   
 
+
 </header>
+
 
 <section id="data" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="data">Data</h2>
@@ -262,7 +299,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="unnumbered anchored" data-anchor-id="load-data-and-packages">Load data and packages</h2>
 <p>As before, load the data and let the treatment variable (<code>hormon</code>) be a factor variable.</p>
 <p>In this practical we will only use the survival and boot packages.</p>
-<div class="cell" data-hash="causal_comp_risk_cache/html/unnamed-chunk-1_8a560831183627bda63aac563d2f5e10">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survival)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(boot)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -275,7 +312,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <ol type="1">
 <li>Obtain and plot un-adjusted Kaplan-Meier survival curves for time to the composite event of recurrence or death, for people who did and did not receive hormone therapy. How does the result compare to the result you got when looking at time to death only? How do you interpret any differences?</li>
 </ol>
-<div class="cell" data-hash="causal_comp_risk_cache/html/unnamed-chunk-2_1cbecb1850f30ea0a8e94e08475ff11f">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate and plot K-M for time to composite endpoint:</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>kmc <span class="ot">=</span> <span class="fu">survfit</span>(<span class="fu">Surv</span>(rdtime, rd <span class="sc">!=</span> <span class="dv">0</span>) <span class="sc">~</span> hormon, <span class="at">data=</span>dta)</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kmc, <span class="at">xlab=</span><span class="st">"Time (years)"</span>, <span class="at">ylab=</span><span class="st">"Survival probability"</span>,</span>
@@ -286,13 +323,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>km <span class="ot">=</span> <span class="fu">survfit</span>(<span class="fu">Surv</span>(dtime, death) <span class="sc">~</span> hormon, <span class="at">data=</span>dta)</span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(km, <span class="at">col=</span><span class="fu">c</span>(<span class="st">"gray"</span>,<span class="st">"lightgray"</span>), <span class="at">conf.int=</span>T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="causal_comp_risk_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="causal_comp_risk_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <ol start="2" type="1">
 <li>Now estimate and plot adjusted marginal survival curves for the composite endpoints using the same inverse probability of treatment weights as you made in Exercise 1. Interpret your results.</li>
 </ol>
-<div class="cell" data-hash="causal_comp_risk_cache/html/unnamed-chunk-3_abe3237645616c8be8a12a1871c681b9">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit model for treatment:</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>mod.treat <span class="ot">=</span> <span class="fu">glm</span>(hormon <span class="sc">~</span> age <span class="sc">+</span> meno <span class="sc">+</span> size <span class="sc">+</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.factor</span>(grade) <span class="sc">+</span> enodes <span class="sc">+</span> pgr <span class="sc">+</span> er <span class="sc">+</span></span>
@@ -309,13 +350,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="at">x=</span><span class="st">"bottomleft"</span>, <span class="fu">c</span>(<span class="st">"Treatment: No"</span>, <span class="st">"Treatment: Yes"</span>),</span>
 <span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">col=</span><span class="fu">c</span>(<span class="st">"red"</span>, <span class="st">"blue"</span>), <span class="at">lty=</span><span class="dv">1</span>, <span class="at">lwd=</span><span class="dv">2</span>, <span class="at">bty=</span><span class="st">"n"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="causal_comp_risk_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="causal_comp_risk_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <ol start="3" type="1">
 <li>Run a test for the difference between composite “survival” curves and interpret the results.</li>
 </ol>
-<div class="cell" data-hash="causal_comp_risk_cache/html/unnamed-chunk-4_d513dcfb1a0d9be539c5ba14810b9681">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">coxph</span>(<span class="fu">Surv</span>(rdtime, rd <span class="sc">!=</span> <span class="dv">0</span>) <span class="sc">~</span> hormon, <span class="at">weights=</span>wt, <span class="at">data=</span>dta)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Call:
@@ -335,7 +380,7 @@ n= 2939, number of events= 1612 </code></pre>
 <ol type="1">
 <li>Calculate and plot unadjusted marginal cause-specific cumulative incidence for both recurrence and death without recurrence. How do these curves compare to the plot in Part A 1?</li>
 </ol>
-<div class="cell" data-hash="causal_comp_risk_cache/html/unnamed-chunk-5_367fc008fbb25987317e577d3b340b2e">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>cuminc <span class="ot">=</span> <span class="fu">survfit</span>(<span class="fu">Surv</span>(rdtime, rd, <span class="at">type=</span><span class="st">"mstate"</span>) <span class="sc">~</span> hormon, dta)</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cuminc, <span class="at">xlab=</span><span class="st">"Time (years)"</span>, <span class="at">ylab=</span><span class="st">"Cumulative incidence"</span>,</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">col=</span><span class="fu">c</span>(<span class="st">"red"</span>, <span class="st">"blue"</span>), <span class="at">lwd=</span><span class="dv">2</span>, <span class="at">lty=</span><span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">3</span>, <span class="dv">1</span>, <span class="dv">1</span>))</span>
@@ -344,13 +389,17 @@ n= 2939, number of events= 1612 </code></pre>
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">col=</span><span class="fu">c</span>(<span class="st">"blue"</span>, <span class="st">"red"</span>, <span class="st">"blue"</span>, <span class="st">"red"</span>), <span class="at">lty=</span><span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">3</span>, <span class="dv">1</span>, <span class="dv">1</span>),</span>
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">lwd=</span><span class="dv">2</span>, <span class="at">bty=</span><span class="st">"n"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="causal_comp_risk_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="causal_comp_risk_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <ol start="2" type="1">
 <li>Calculate and plot adjusted marginal cause-specific cumulative incidence for both recurrence and death without recurrence. How would you describe the total effect of treatment on recurrence? To what degree can there be a indirect effect through the competing event of death without recurrence?</li>
 </ol>
-<div class="cell" data-hash="causal_comp_risk_cache/html/unnamed-chunk-6_0f01b39950f013bddbe0519f4edb3f3f">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>cuminc <span class="ot">=</span> <span class="fu">survfit</span>(<span class="fu">Surv</span>(rdtime, rd, <span class="at">type=</span><span class="st">"mstate"</span>) <span class="sc">~</span> hormon, <span class="at">weights=</span>wt, dta)</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cuminc, <span class="at">xlab=</span><span class="st">"Time (years)"</span>, <span class="at">ylab=</span><span class="st">"Cumulative incidence"</span>,</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">col=</span><span class="fu">c</span>(<span class="st">"red"</span>, <span class="st">"blue"</span>), <span class="at">lwd=</span><span class="dv">2</span>, <span class="at">lty=</span><span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">3</span>, <span class="dv">1</span>, <span class="dv">1</span>))</span>
@@ -359,13 +408,17 @@ n= 2939, number of events= 1612 </code></pre>
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">col=</span><span class="fu">c</span>(<span class="st">"red"</span>, <span class="st">"blue"</span>, <span class="st">"red"</span>, <span class="st">"blue"</span>), <span class="at">lty=</span><span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">3</span>, <span class="dv">1</span>, <span class="dv">1</span>),</span>
 <span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">lwd=</span><span class="dv">2</span>, <span class="at">bty=</span><span class="st">"n"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="causal_comp_risk_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="causal_comp_risk_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <ol start="3" type="1">
 <li>Run a test for the difference between cumulative incidence of recurrence and interpret the results.</li>
 </ol>
-<div class="cell" data-hash="causal_comp_risk_cache/html/unnamed-chunk-7_dd8800e97818c4558dcb3e5f0b3a1eb3">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create new dataset for the subdistribution hazard:</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>dta.sub <span class="ot">=</span> <span class="fu">finegray</span>(<span class="fu">Surv</span>(rdtime, rd, <span class="at">type=</span><span class="st">"mstate"</span>) <span class="sc">~</span> ., <span class="at">etype=</span><span class="dv">1</span>, <span class="at">data=</span>dta)</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Run weighted Cox model on subdistribution dataset:</span></span>
@@ -380,19 +433,20 @@ coxph(formula = Surv(fgstart, fgstop, fgstatus) ~ hormon, data = dta.sub,
 hormon1 -0.17199   0.84199  0.03747   0.14621 -1.176 0.239
 
 Likelihood ratio test=21.12  on 1 df, p=4.315e-06
-n= 29673, number of events= 1477 </code></pre>
+n= 29673, unique id= 2939, number of events= 1477 </code></pre>
 </div>
 </div>
 <ol start="4" type="1">
 <li>Calculate the absolute difference in five year risk of recurrence between the two treatment groups based on the weighted Kaplan-Meier estimates from the prior exercise. Add bootstrap confidence intervals. How do you interpret the results?</li>
 </ol>
-<div class="cell" data-hash="causal_comp_risk_cache/html/unnamed-chunk-8_d04b7c62ecbdbf96e16a64130f8d00b8">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate difference in cumulative incidence F(t) at t=5 years:</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>pstate <span class="ot">=</span> <span class="fu">summary</span>(cuminc, <span class="at">times=</span><span class="dv">5</span>)<span class="sc">$</span>pstate</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>Fdiff <span class="ot">=</span> pstate[<span class="dv">2</span>,<span class="dv">2</span>] <span class="sc">-</span> pstate[<span class="dv">1</span>,<span class="dv">2</span>]</span>
 <span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>Fdiff</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] -0.09252237</code></pre>
+<pre><code>          1 
+-0.09252237 </code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Bootstrap:</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>fdiff <span class="ot">=</span> <span class="cf">function</span>(data, indices){</span>
@@ -422,7 +476,7 @@ boot(data = dta, statistic = fdiff, R = 100)
 
 Bootstrap Statistics :
        original       bias    std. error
-t1* -0.09252237 -0.008046092   0.0462806</code></pre>
+t1* -0.09252237 -0.002111384  0.04551915</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">boot.ci</span>(b1, <span class="at">type=</span><span class="fu">c</span>(<span class="st">"perc"</span>, <span class="st">"norm"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -434,7 +488,7 @@ boot.ci(boot.out = b1, type = c("perc", "norm"))
 
 Intervals : 
 Level      Normal             Percentile     
-95%   (-0.1752,  0.0062 )   (-0.1790, -0.0018 )  
+95%   (-0.1796, -0.0012 )   (-0.1906, -0.0025 )  
 Calculations and Intervals on Original Scale
 Some percentile intervals may be unstable</code></pre>
 </div>
@@ -442,18 +496,18 @@ Some percentile intervals may be unstable</code></pre>
 <ol start="5" type="1">
 <li>Repeat exercise 3, but now for the <strong>restricted mean</strong> (recurrence free) time lost (RMTL) to recurrence after five years. Interpret the results.</li>
 </ol>
-<div class="cell" data-hash="causal_comp_risk_cache/html/unnamed-chunk-9_b946f33218f7dfc6435379146945e522">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate difference in RMTL at 5 years:</span></span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>rmtl <span class="ot">=</span> <span class="fu">summary</span>(cuminc, <span class="at">rmean=</span><span class="dv">5</span>)<span class="sc">$</span>table</span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>rmtl</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>                  n nevent      rmean
-hormon=0, (s0) 2605      0 3.69900478
-hormon=1, (s0)  334      0 4.11459536
-hormon=0, 1    2605   1295 1.22911433
-hormon=1, 1     334    182 0.84317703
-hormon=0, 2    2605    116 0.07188089
-hormon=1, 2     334     19 0.04222762</code></pre>
+<pre><code>                  n     nevent      rmean  se(rmean)
+hormon=0, (s0) 2605    0.00000 3.69900478 0.03463876
+hormon=1, (s0)  334    0.00000 4.11459536 0.11769994
+hormon=0, 1    2605 1524.52988 1.22911433 0.03444235
+hormon=1, 1     334 1342.60996 0.84317703 0.11566147
+hormon=0, 2    2605  142.32192 0.07188089 0.01023798
+hormon=1, 2     334   69.73814 0.04222762 0.01360438</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>RMTLdiff <span class="ot">=</span> rmtl[<span class="dv">4</span>, <span class="dv">3</span>] <span class="sc">-</span> rmtl[<span class="dv">3</span>, <span class="dv">3</span>]</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>RMTLdiff</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -487,8 +541,8 @@ boot(data = dta, statistic = fdiff, R = 100)
 
 
 Bootstrap Statistics :
-      original     bias    std. error
-t1* -0.3859373 0.01522951   0.1183505</code></pre>
+      original      bias    std. error
+t1* -0.3859373 0.001982641   0.1115977</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">boot.ci</span>(b2, <span class="at">type=</span><span class="fu">c</span>(<span class="st">"perc"</span>, <span class="st">"norm"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -500,7 +554,7 @@ boot.ci(boot.out = b2, type = c("perc", "norm"))
 
 Intervals : 
 Level      Normal             Percentile     
-95%   (-0.6331, -0.1692 )   (-0.5762, -0.1107 )  
+95%   (-0.6066, -0.1692 )   (-0.6164, -0.1376 )  
 Calculations and Intervals on Original Scale
 Some percentile intervals may be unstable</code></pre>
 </div>
@@ -508,14 +562,18 @@ Some percentile intervals may be unstable</code></pre>
 <ol start="6" type="1">
 <li>EXTRA: Make a plot of the difference between the cumulative incidence curves from <span class="math inline">\(t=0\)</span> to <span class="math inline">\(t=10\)</span> and interpret the results (hint: utilize the <code>stepfun</code> function)</li>
 </ol>
-<div class="cell" data-hash="causal_comp_risk_cache/html/unnamed-chunk-10_f095d9b24e2b497ecb652c8eb00f2ea2">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>Fa1 <span class="ot">=</span> <span class="fu">stepfun</span>(cuminc[<span class="st">"hormon=1"</span>,]<span class="sc">$</span>time, <span class="fu">c</span>(<span class="dv">0</span>, cuminc[<span class="st">"hormon=1"</span>,]<span class="sc">$</span>pstate[,<span class="dv">2</span>]), <span class="at">right=</span>T)</span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>Fa0 <span class="ot">=</span> <span class="fu">stepfun</span>(cuminc[<span class="st">"hormon=0"</span>,]<span class="sc">$</span>time, <span class="fu">c</span>(<span class="dv">0</span>, cuminc[<span class="st">"hormon=0"</span>,]<span class="sc">$</span>pstate[,<span class="dv">2</span>]), <span class="at">right=</span>T)</span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>times <span class="ot">=</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">10</span>, <span class="at">by=</span><span class="fl">0.01</span>)</span>
 <span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(times, <span class="fu">Fa1</span>(times) <span class="sc">-</span> <span class="fu">Fa0</span>(times), <span class="at">type=</span><span class="st">"s"</span>, <span class="at">lty=</span><span class="dv">3</span>, <span class="at">lwd=</span><span class="dv">2</span>,</span>
 <span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">ylab=</span><span class="st">"Cumulative incidence difference"</span>, <span class="at">xlab=</span><span class="st">"Time (years)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="causal_comp_risk_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="causal_comp_risk_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
@@ -524,7 +582,7 @@ Some percentile intervals may be unstable</code></pre>
 <ol type="1">
 <li>Fit a Cox proportional hazard model for the cause specific hazard of each event (recurrence and death without recurrence), adjusting for hormon, age, meno, size, grade, enodes, pgr, er and chemo. How would you interpret the output?</li>
 </ol>
-<div class="cell" data-hash="causal_comp_risk_cache/html/unnamed-chunk-11_fec7406737f010ae018b6dc8c9e9e69a">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>c1 <span class="ot">=</span> <span class="fu">coxph</span>(<span class="fu">Surv</span>(rdtime, rd, <span class="at">type=</span><span class="st">"mstate"</span>) <span class="sc">~</span> hormon <span class="sc">+</span> age <span class="sc">+</span></span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>    meno <span class="sc">+</span> size <span class="sc">+</span> <span class="fu">as.factor</span>(grade) <span class="sc">+</span> enodes <span class="sc">+</span> pgr <span class="sc">+</span></span>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>    er <span class="sc">+</span> chemo, <span class="at">id=</span>pid, dta)</span>
@@ -576,13 +634,13 @@ coxph(formula = Surv(rdtime, rd, type = "mstate") ~ hormon +
  States:  1= (s0), 2= 1, 3= 2 
 
 Likelihood ratio test=851.2  on 20 df, p=&lt; 2.2e-16
-n= 2939, number of events= 1612 </code></pre>
+n= 2939, unique id= 2939, number of events= 1612 </code></pre>
 </div>
 </div>
 <ol start="2" type="1">
 <li>Use the Cox model you just fitted to predict the event probabilities from <span class="math inline">\(t=0\)</span> to <span class="math inline">\(t=10\)</span> for an individual with hormon, age, size and grade at the same values as the first individual in the dataset (pid=1) and all other covariates equal to 0.</li>
 </ol>
-<div class="cell" data-hash="causal_comp_risk_cache/html/unnamed-chunk-12_5321d30c4b7f1594b1ba5ff0d57bbc4e">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>nd <span class="ot">=</span> <span class="fu">expand.grid</span>(<span class="at">hormon =</span> dta<span class="sc">$</span>hormon[<span class="dv">1</span>], <span class="at">age =</span> dta<span class="sc">$</span>age[<span class="dv">1</span>], <span class="at">meno =</span> <span class="fu">c</span>(<span class="dv">0</span>),</span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">size =</span> dta<span class="sc">$</span>size[<span class="dv">1</span>], <span class="at">grade =</span> dta<span class="sc">$</span>grade[<span class="dv">1</span>], <span class="at">enodes =</span> <span class="fu">c</span>(<span class="dv">0</span>),</span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">pgr =</span> <span class="fu">c</span>(<span class="dv">0</span>), <span class="at">er =</span> <span class="fu">c</span>(<span class="dv">0</span>), <span class="at">chemo =</span> <span class="fu">c</span>(<span class="dv">0</span>))</span>
@@ -590,14 +648,18 @@ n= 2939, number of events= 1612 </code></pre>
 <span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cuminc.pred, <span class="at">lwd=</span><span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>), <span class="at">lty=</span><span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">1</span>), <span class="at">ylab=</span><span class="st">"Cumulative incidence"</span>, <span class="at">xlab=</span><span class="st">"Time"</span>)</span>
 <span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="at">x=</span><span class="st">"topleft"</span>, <span class="fu">c</span>(<span class="st">"Recurrence"</span>, <span class="st">"Death"</span>), <span class="at">lty=</span><span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">1</span>), <span class="at">lwd=</span><span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>), <span class="at">bty=</span><span class="st">"n"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="causal_comp_risk_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="causal_comp_risk_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <ol start="3" type="1">
 <li>Calculate marginal adjusted cumulative incidence curves for recurrence by standardisation (g-formula). How do the resulting curves compare to the inverse probability weighted curves produced earlier?</li>
 </ol>
 <p>Hint: Predict cumulative incidence as in the previous exercise, for every individual in the dataset, fixing treatment to 1 and then, again, to 0.</p>
-<div class="cell" data-hash="causal_comp_risk_cache/html/unnamed-chunk-13_6c58a116a3885d3821aa4179bf7a2b75">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Predict cumulative incidence for hormon=1 and hormon=0, with observed values of L:</span></span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>nd1 <span class="ot">=</span> dta</span>
 <span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>nd0 <span class="ot">=</span> dta</span>
@@ -611,7 +673,11 @@ n= 2939, number of events= 1612 </code></pre>
 <span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="at">x=</span><span class="st">"topleft"</span>, <span class="fu">c</span>(<span class="st">"Recurrence (untreated)"</span>, <span class="st">"Recurrence (treated)"</span>),</span>
 <span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">col=</span><span class="fu">c</span>(<span class="st">"red"</span>, <span class="st">"blue"</span>), <span class="at">lwd=</span><span class="dv">2</span>, <span class="at">lty=</span><span class="dv">3</span>, <span class="at">bty=</span><span class="st">"n"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="causal_comp_risk_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="causal_comp_risk_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 
@@ -654,18 +720,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
     return false;
   }
-  const clipboard = new window.ClipboardJS('.code-copy-button', {
-    text: function(trigger) {
-      const codeEl = trigger.previousElementSibling.cloneNode(true);
-      for (const childEl of codeEl.children) {
-        if (isCodeAnnotation(childEl)) {
-          childEl.remove();
-        }
-      }
-      return codeEl.innerText;
-    }
-  });
-  clipboard.on('success', function(e) {
+  const onCopySuccess = function(e) {
     // button target
     const button = e.trigger;
     // don't keep focus
@@ -697,11 +752,50 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }, 1000);
     // clear code selection
     e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
   });
-  function tippyHover(el, contentFn) {
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
     const config = {
       allowHTML: true,
-      content: contentFn,
       maxWidth: 500,
       delay: 100,
       arrow: false,
@@ -711,8 +805,17 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       interactive: true,
       interactiveBorder: 10,
       theme: 'quarto',
-      placement: 'bottom-start'
+      placement: 'bottom-start',
     };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
     window.tippy(el, config); 
   }
   const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
@@ -724,7 +827,130 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       try { href = new URL(href).hash; } catch {}
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
-      return note.innerHTML;
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
     });
   }
       let selectedAnnoteEl;
@@ -768,6 +994,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
             }
             div.style.top = top - 2 + "px";
             div.style.height = height + 4 + "px";
+            div.style.left = 0;
             let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
             if (gutterDiv === null) {
               gutterDiv = window.document.createElement("div");
@@ -793,6 +1020,32 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         });
         selectedAnnoteEl = undefined;
       };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
       // Attach click handler to the DT
       const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
       for (const annoteDlNode of annoteDls) {
@@ -854,7 +1107,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation column-body">
   <div class="nav-page nav-page-previous">
-      <a href="./sustained_trts.html" class="pagination-link">
+      <a href="./sustained_trts.html" class="pagination-link" aria-label="Marginal structural models and g-formula for sustained treatment strategies">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Marginal structural models and g-formula for sustained treatment strategies</span>
       </a>          
   </div>
@@ -862,6 +1115,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   </div>
 </nav>
 </div> <!-- /content -->
+
 
 
 
